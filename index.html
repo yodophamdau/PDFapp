@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>A4 PDF 作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="theme-night">
+  <!-- 4項目入力用モーダル -->
+  <div id="text-edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>情報入力</h2>
+
+      <label class="modal-row">
+        <span>入国G：</span>
+        <input id="input-gcode" type="text" />
+      </label>
+
+      <label class="modal-row">
+        <span>入国日：</span>
+        <input id="input-nyukokubi" type="text" />
+      </label>
+
+      <label class="modal-row">
+        <span>会社名：</span>
+        <input id="input-kaisha" type="text" />
+      </label>
+
+      <label class="modal-row">
+        <span>氏名：</span>
+        <input id="input-namae" type="text" />
+      </label>
+
+      <div class="modal-buttons text-modal-actions">
+          <!-- icon cây chổi, nét giống icon image -->
+        <button
+          id="text-clear"
+          type="button"
+          class="text-modal-icon-btn"
+          aria-label="テキストをクリア"
+        >
+          <!-- icon eraser: rõ là “xoá nội dung” -->
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <!-- thân cục tẩy -->
+            <path
+              d="M4.5 14.5L11 8l3-3 5.5 5.5-3 3-6.5 6.5H7L4.5 17z"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <!-- đường gạch sạch phía dưới -->
+            <path
+              d="M9 20.5h7"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+
+        </button>
+        <!-- SAVE -->
+        <button
+          id="text-save"
+          type="button"
+          class="text-modal-icon-btn text-modal-icon-primary"
+          aria-label="保存"
+        >
+          <!-- icon check trong vòng tròn, line như icon image -->
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M9 12.2l2 2.2L15 10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ⚡ 画像ソース選択モーダル（アイコンのみ / タップ外で閉じる） -->
+  <div id="image-source-modal" class="modal hidden">
+    <button
+      id="image-source-gallery"
+      type="button"
+      aria-label="フォトライブラリから選択"
+      class="image-picker-btn"
+    >
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2.4" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="9" cy="10" r="1.7" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M7 16l3-3 2.5 2.6 3.4-4.1 3.1 4.5"
+          stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button
+      id="image-source-camera"
+      type="button"
+      aria-label="カメラで撮影"
+      class="image-picker-btn"
+    >
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="7" width="18" height="12" rx="2.4" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M9 7l1.2-2h3.6L15 7"
+          stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="18" cy="10" r="0.9" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+
+
+
+
+
+  <!-- 編集画面（1画面構成） -->
+  <div id="editor-screen" class="phone-container">
+    <!-- Top toolbar：戻る + レイアウト切替 + PDF保存 -->
+<div id="toolbar">
+  <!-- Clear all -->
+  <button
+    id="back-button"
+    class="nav-btn icon-only"
+    type="button"
+    aria-label="すべてクリア"
+    title="すべてクリア"
+  >
+    <span class="icon" aria-hidden="true">
+      <!-- icon thùng rác -->
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M9 3h6a1 1 0 0 1 1 1v1h4v2h-2l-1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7H4V5h4V4a1 1 0 0 1 1-1z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M11 11v6M13 11v6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+  </button>
+
+  <!-- Layout toggle: giữ như cũ -->
+  <button
+    id="layout-toggle"
+    class="nav-btn layout-toggle-btn"
+    type="button"
+    aria-label="レイアウト切り替え"
+    title="レイアウト切り替え"
+  >
+    <span class="icon layout-icon" aria-hidden="true">
+      <!-- Icon layout 3-blocks (在留カード) -->
+      <svg class="layout-icon-3" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="4"  width="16" height="3.5" rx="1.4"
+              stroke="currentColor" stroke-width="1.4" />
+        <rect x="4" y="10" width="16" height="3.5" rx="1.4"
+              stroke="currentColor" stroke-width="1.4" />
+        <rect x="4" y="16" width="16" height="3.5" rx="1.4"
+              stroke="currentColor" stroke-width="1.4" />
+      </svg>
+
+      <!-- Icon layout 2-blocks (キャッシュカード) -->
+      <svg class="layout-icon-2" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="5"  width="16" height="5" rx="1.4"
+              stroke="currentColor" stroke-width="1.4" />
+        <rect x="4" y="13" width="16" height="7" rx="1.4"
+              stroke="currentColor" stroke-width="1.4" />
+      </svg>
+    </span>
+  </button>
+
+  <!-- PDF export -->
+  <button
+    id="export-pdf"
+    class="primary-btn icon-only"
+    type="button"
+    aria-label="PDF保存"
+    title="PDF保存"
+  >
+    <span class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <!-- document outline -->
+        <path
+          d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+        <!-- folded corner -->
+        <path
+          d="M15 2v5h5"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+
+        <!-- === PDF letters optimized === -->
+        <!-- P -->
+        <path
+          d="M8 13h1.8c.9 0 1.5-.5 1.5-1.3v-.4c0-.8-.6-1.3-1.5-1.3H8v3z"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <!-- D -->
+        <path
+          d="M12 10v3h1.4c1 0 1.6-.7 1.6-1.5v0c0-.8-.6-1.5-1.6-1.5H12z"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <!-- F -->
+        <path
+          d="M16 10h2M16 11.5h1.6"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </span>
+  </button>
+</div>
+
+
+    <!-- A4 エリア -->
+    <div id="a4-wrapper">
+      <div id="a4-page">
+        <!-- 中央エリアにレイアウトを配置（JSで生成） -->
+        <div id="a4-inner"></div>
+      </div>
+    </div>
+
+    <!-- Bottom bar：ファイル名入力だけ -->
+    <div id="bottom-bar">
+      <div class="file-name-input">
+        <label for="file-name">ファイル名：</label>
+        <input type="text" id="file-name" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 画像選択用（非表示） -->
+  <!-- Photos（フォトライブラリ用） -->
+  <input
+    type="file"
+    id="image-input-gallery"
+    accept="image/*"
+    style="display:none"
+  />
+
+  <!-- Camera（カメラ起動用） -->
+  <input
+    type="file"
+    id="image-input-camera"
+    accept="image/*"
+    capture="environment"
+    style="display:none"
+  />
+
+
+  <!-- html2pdf ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

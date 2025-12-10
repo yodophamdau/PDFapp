@@ -1,0 +1,1443 @@
+/* ================== 共通設定 ================== */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: #f3f4f6; /* 明るいグレー */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic",
+    "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+  color: #333;
+}
+
+/* リンクなどを選択しても青枠が出にくいように */
+button,
+input {
+  font-family: inherit;
+}
+
+
+/* ================== 編集画面全体 ================== */
+
+#editor-screen {
+  margin-top: 16px; /* auto margin bỏ, để chiều rộng 100% */
+}
+
+
+/* 上部バー（戻る・ファイル名・PDF保存） */
+#toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* 戻るボタン */
+#back-button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#back-button:hover {
+  background: #e5e7eb;
+}
+
+/* ファイル名入力 */
+.file-name-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.file-name-input label {
+  font-size: 13px;
+  color: #555;
+}
+
+#file-name {
+  padding: 4px 8px;
+  min-width: 180px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+}
+
+#file-name:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
+}
+
+/* PDF保存ボタン */
+#export-pdf {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  background: #6366f1;
+  color: #ffffff;
+  min-width: 90px;
+}
+
+#export-pdf:hover {
+  filter: brightness(1.05);
+}
+
+/* ================== A4プレビューエリア ================== */
+
+#a4-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+
+  /* thêm 2 dòng này để khi xuất PDF, nền trắng và tờ giấy được canh đẹp */
+  background: #ffffff;
+  padding: 20px 0;
+}
+
+/* A4紙の外枠 */
+#a4-page {
+  background: #ffffff;
+  width: 100%;
+  max-width: 620px;
+  aspect-ratio: 1 / 1.414; /* A4縦 */
+  border: none;
+  box-shadow: none;
+  display: flex;
+  justify-content: center;
+}
+
+/* 紙の中のレイアウト有効領域（左右15%、中央70%） */
+#a4-inner {
+  width: 70%; /* 左右15%ずつ余白 */
+  height: 100%;
+}
+
+/* ================== ブロック共通 ================== */
+
+.block {
+  border: 1px dashed #cbd5e1;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  background: #f9fafb;
+  color: #555;
+}
+
+.block.placeholder {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* スペーサー行（見えない行） */
+.spacer {
+  width: 100%;
+  border: none;
+  background: transparent;
+}
+
+.spacer-mid-1,
+.spacer-mid-2 {
+  border: none;
+  background: transparent;
+}
+
+/* ================== レイアウト：在留カード（2画像+テキスト） ================== */
+/* 上7 / 画像35 / 間2 / 画像35 / 間2 / テキスト14 / 下5 = 100 */
+
+#a4-inner.layout-3blocks {
+  display: grid;
+  grid-template-rows:
+    6fr   /* spacer-top */
+    36fr  /* block-1 (画像1) */
+    1fr   /* spacer-mid-1 */
+    36fr  /* block-2 (画像2) */
+    1fr   /* spacer-mid-2 */
+    17fr  /* block-3 (テキスト) */
+    4fr;  /* spacer-bottom */
+}
+body.theme-night.pdf-mode #a4-inner.layout-3blocks {
+  grid-template-rows:
+    9fr   /* spacer-top */
+    36fr  /* block-1 (画像1) */
+    1fr   /* spacer-mid-1 */
+    36fr  /* block-2 (画像2) */
+    1fr   /* spacer-mid-2 */
+    17fr  /* block-3 (テキスト) */
+    1fr;  /* spacer-bottom */
+}
+
+/* ================== レイアウト：キャッシュカード（1画像+テキスト） ================== */
+/* 上7 / 上余白17 / 画像35 / 間2 / テキスト14 / 下25 = 100 */
+
+#a4-inner.layout-2blocks {
+  display: grid;
+  grid-template-rows:
+    7fr   /* spacer-top */
+    17fr  /* spacer-mid-1（画像上の余白） */
+    36fr  /* block-1 (画像) */
+    1fr   /* spacer-mid-2（画像とテキストの間） */
+    17fr  /* block-2 (テキスト) */
+    24fr; /* spacer-bottom */
+}
+body.theme-night.pdf-mode #a4-inner.layout-2blocks {
+  grid-template-rows:
+    14fr  /* spacer-top: lề trên */
+    15fr  /* spacer trên ảnh */
+    36r  /* block-1 (画像) – ảnh to hơn 1 chút */
+    2fr   /* khoảng giữa ảnh và text */
+    18fr  /* block-2 (テキスト) – text cao hơn */
+    15fr; /* spacer-bottom: lề dưới, nhỏ hơn trước nhiều */
+}
+/* ================== 画像ブロック ================== */
+
+/* 通常時：画像を枠いっぱいに表示（比率維持、トリミングあり） */
+.block[data-type="image"] {
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+/* プレースホルダー時はテキストを中央に */
+.block[data-type="image"].placeholder {
+  justify-content: center;
+  align-items: center;
+}
+
+/* 画像を枠いっぱいにフィット */
+.block[data-type="image"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;      /* Quan trọng: giữ nguyên tỉ lệ ảnh */
+  object-position: center;  /* căn giữa ảnh trong block */
+  background: #ffffff;      /* khoảng thừa = nền trắng, nhìn gọn trên PDF */
+}
+
+/* ================== テキストブロック ================== */
+
+/* Block text: nội dung hiển thị (bảng) thì nằm trên, không căn giữa */
+.block[data-type="text"] {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+/* NHƯNG nếu vẫn còn placeholder
+   (class="block ... placeholder" & data-type="text")
+   → cho hint text nằm giữa */
+.block[data-type="text"].placeholder {
+  justify-content: center;
+  align-items: center;
+}
+
+/* Container cho 4 dòng thông tin */
+.block-text-content {
+  padding: 8px 10px;
+  width: 100%;
+  font-size: 11pt;
+  line-height: 1.5;
+}
+
+/* Mỗi dòng: label + value trên cùng một hàng */
+.info-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Label: width cố định, căn phải → dấu ： thẳng hàng */
+.info-label {
+  display: inline-block;
+  width: 80px;          /* bạn có thể tăng/giảm cho vừa ý */
+  text-align: right;
+  margin-right: 6px;
+  color: #4b5563;
+}
+
+/* Value: phần dữ liệu */
+.info-value {
+  flex: 1;
+  color: #111827;
+  text-align: left;
+  word-break: break-all;     /* thêm dòng này */
+  overflow-wrap: anywhere;   /* nếu muốn mềm hơn nữa */
+}
+
+
+
+/* 中のテキストは左寄せ、等幅フォントで帳票っぽく */
+.info-table {
+  padding: 8px;
+  font-size: 10pt;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: left;
+  max-height: 100%;
+  overflow-y: auto;
+  width: 100%;
+  font-family: "MS Gothic", "Yu Gothic", "Courier New", ui-monospace, monospace;
+}
+
+/* ================== テキスト入力モーダル ================== */
+
+.modal.hidden {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 20px 24px 18px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+}
+.modal-content h2 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  color: #111827;
+  border-bottom: none;
+  letter-spacing: 0.04em;
+}
+
+/* Title riêng của modal text – có gạch nhấn bên dưới */
+#text-edit-modal .modal-content h2 {
+  font-size: 16px;
+  font-weight: 650;
+  position: relative;
+}
+
+#text-edit-modal .modal-content h2::after {
+  content: "";
+  display: block;
+
+  /* ⭐ kéo dài line ra theo chiều ngang modal */
+  width: 25%;             /* có thể chỉnh 55% ~ 80% tùy mắt bạn */
+
+  height: 2px;          /* mỏng hơn 1 chút cho tinh tế */
+  
+  /* ⭐ đổi sang xám nhạt, blend với panel kính mờ */
+  background: rgba(148, 163, 184, 0.75);
+
+  border-radius: 3px;
+  margin: 5px auto 2px;   /* tăng khoảng cách dưới title cho thoáng */
+}
+
+
+
+/* ====== Text Edit Modal – overlay & panel ====== */
+
+/* Overlay riêng cho modal text – đồng bộ style với image picker */
+/* ====== Text Edit Modal – bottom sheet style ====== */
+#text-edit-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;           /* ⭐ đưa panel lên chính giữa màn hình */
+  padding: 0 12px;               /* bỏ padding dưới để thật sự nằm giữa */
+
+  /* overlay mờ nhẹ, giữ nguyên như cũ */
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(15, 23, 42, 0.34) 0%,
+      rgba(15, 23, 42, 0.18) 45%,
+      rgba(15, 23, 42, 0.08) 75%,
+      rgba(15, 23, 42, 0.0) 100%
+    );
+  backdrop-filter: blur(10px) saturate(1.05) brightness(0.98);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05) brightness(0.98);
+  z-index: 1100;
+
+  opacity: 0;
+  transition: opacity 0.22s ease-out;
+}
+
+/* Khi bàn phím bật → đẩy modal lên phía trên một chút */
+#text-edit-modal.keyboard-up {
+  align-items: flex-start;
+  padding-top: 24px;          /* chỉnh số này để modal cao/thấp tùy ý */
+}
+
+/* Đề phòng trường hợp cao quá → cho phép cuộn trong panel */
+#text-edit-modal.keyboard-up .modal-content {
+  max-height: calc(100% - 80px);
+  overflow-y: auto;
+}
+
+
+#text-edit-modal.hidden {
+  display: none;
+}
+
+/* khi mở */
+#text-edit-modal:not(.hidden) {
+  opacity: 1;
+}
+
+
+/* Khi mở modal text */
+#text-edit-modal:not(.hidden) {
+  opacity: 1;
+}
+
+/* Panel bên trong – bo tròn, shadow đẹp hơn + zoom-in */
+/* Panel bottom sheet – kính mờ giống top/bottom bar */
+#text-edit-modal .modal-content {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+
+  /* ⭐ modal nằm giữa nên bo đều 4 góc cho đẹp */
+  border-radius: 20px;
+
+  padding: 16px 18px 14px;
+
+  background: rgba(255, 255, 255, 0.70);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, 0.35),
+    0 0 0 0.5px rgba(148, 163, 184, 0.35);
+
+  /* animation nhẹ khi hiện lên (zoom nhẹ từ giữa) */
+  transform: scale(0.98);
+  opacity: 0;
+  transition:
+    transform 0.24s cubic-bezier(0.22, 0.7, 0.3, 1),
+    opacity 0.24s ease-out;
+}
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Hàng nút trong bottom sheet – Clear trái, Save phải */
+.text-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   /* 👉 đẩy 2 nút sang 2 bên */
+  margin-top: 14px;
+  padding: 0 4px 2px;
+}
+
+
+/* Nút icon trong modal text */
+/* Nút icon: to hơn, cân panel */
+.text-modal-icon-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+}
+
+/* Icon bên trong: nét rõ hơn */
+.text-modal-icon-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Nút SAVE màu xanh – bóng mềm hơn */
+.text-modal-icon-primary {
+  border-color: #22c55e;
+  background: linear-gradient(145deg, #25d366, #1da751);
+}
+.text-modal-icon-primary svg {
+  color: #ffffff;
+}
+
+
+/* Nút 保存 – màu xanh lá, đồng bộ app */
+.text-modal-icon-primary {
+  border-color: #22c55e;
+  background: #22c55e;
+}
+
+.text-modal-icon-primary svg {
+  color: #ffffff;
+}
+
+/* Hover / active giống iOS */
+.text-modal-icon-btn:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+}
+
+.text-modal-icon-btn:active {
+  transform: translateY(1px) scale(0.94);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.26);
+}
+
+/* Ripple effect khi tap */
+.text-modal-icon-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(148, 163, 184, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width 0.32s ease-out,
+    height 0.32s ease-out,
+    opacity 0.4s ease-out;
+}
+
+.text-modal-icon-btn:active::after {
+  width: 200%;
+  height: 200%;
+  opacity: 1;
+}
+
+
+/* 各行（ラベル＋入力） */
+.modal-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;  /* khoảng cách dày hơn */
+}
+
+#text-edit-modal .modal-row:last-of-type {
+  margin-bottom: 0;     /* hàng cuối không bị dư khoảng trắng */
+}
+
+.modal-row span {
+  width: 80px;
+  text-align: right;
+  margin-right: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* 入力欄 */
+.modal-row input {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  outline: none;
+  background: #f9fafb;
+}
+
+/* 4 ô input trong modal: trở về xám mặc định */
+.modal-row input {
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  transition: 0.15s ease;
+}
+
+/* Khi focus: chỉ sáng nhẹ border, không đổi màu */
+.modal-row input:focus {
+  outline: none;
+  border-color: #9ca3af;              /* xám nhạt */
+  box-shadow: 0 0 0 1px rgba(156,163,175,0.35); /* glow xám */
+  background: #ffffff;
+}
+
+/* ボタンエリア */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.modal-buttons button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 13px;
+  background: #f9fafb;
+}
+
+/* キャンセル */
+#text-cancel {
+  background: #f9fafb;
+}
+
+/* 保存ボタンを少し強調 */
+#text-save {
+  border-color: #22c55e;                     /* viền xanh lá nhạt */
+  background: #22c55e;                       /* nền xanh lá nhạt */
+  color: #ffffff;
+  transition: 0.15s ease;
+}
+
+#text-save:hover {
+  filter: brightness(1.06);                  /* hover sáng nhẹ */
+}
+
+#text-save:active,
+#text-save:focus-visible {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.32);  /* viền phát sáng giống text bar */
+}
+
+/* Top Toolbar */
+#toolbar {
+  width: 100%;
+  max-width: 620px;          /* cùng width với A4 */
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  gap: 8px;
+
+  /* Đơn giản, không bo góc, không bóng */
+  background: #ffffff;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.nav-btn,
+.primary-btn {
+  appearance: none;
+  border: 1px solid #d4d4d8;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.15s;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic", sans-serif;
+
+  /* Cùng size */
+  min-width: 90px;              /* ngang tối thiểu */
+  height: 32px;                 /* cao cố định */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Nút trắng (back, layout) */
+.nav-btn {
+  border: 1px solid #d4d4d8;
+  background: #ffffff;
+  color: #111827;
+}
+
+.nav-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Nút PDF – màu chính */
+.primary-btn {
+  border: 1px solid #16a34a;
+  background: #22c55e;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+/* Back button */
+.nav-btn {
+    background: #eef1f7;
+    color: #333;
+}
+.nav-btn:hover {
+    background: #e0e3e8;
+}
+
+/* Back icon */
+.nav-btn .icon {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* ---------- Icon-only buttons (Clear / PDF) ---------- */
+
+.icon-only {
+  min-width: 44px;       /* thu ngắn ngang */
+  padding: 6px 8px;      /* bớt padding để ô gọn lại */
+}
+
+/* bỏ khoảng trống do font, chỉ dùng SVG */
+.icon-only .icon {
+  font-size: 0;
+  line-height: 1;
+}
+
+/* size icon */
+.icon-only .icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* ----- PDF button style ----- */
+#export-pdf.primary-btn.icon-only {
+  min-width: 42px;      /* thu gọn width */
+  padding: 6px 8px;     /* thu padding */
+  background: transparent;  /* đổi màu tím đậm */
+  border: 1px solid transparent;
+}
+
+/* hover đẹp hơn */
+#export-pdf.primary-btn.icon-only:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Filename input */
+.filename-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+.filename-box label {
+    white-space: nowrap;
+}
+.filename-box input {
+    width: 120px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #cfd4da;
+    background: white;
+    font-size: 13px;
+}
+
+/* 3 nút trên top bar: Trash / Layout / PDF */
+body.theme-night #toolbar button {
+  transition:
+    transform 0.2s ease-out,              /* lâu hơn → cảm giác “có hiệu ứng” hơn */
+    box-shadow 0.2s ease-out,
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out;
+}
+
+/* Khi click / tap giữ: phóng nhẹ giống 3 block */
+body.theme-night #toolbar button:active {
+  transform: scale(1.03);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+}
+
+
+/* Bottom bar – ファイル名入力専用 */
+#bottom-bar {
+  width: 100%;
+  max-width: 620px;
+  margin: 14px auto 0;
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-radius: 0;           /* bỏ bo góc */
+  box-shadow: none;           /* bỏ bóng */
+  border: 1px solid #e5e7eb;
+  backdrop-filter: none;
+}
+
+/* label + input full width */
+#bottom-bar .file-name-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#bottom-bar .file-name-input label {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #555;
+}
+
+#bottom-bar #file-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+}
+
+#bottom-bar #file-name:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+}
+
+/* レイアウト切替ボタンの見た目を少し薄く */
+.layout-toggle-btn {
+  min-width: 110px;
+  font-size: 11px;
+  background: #f0fdf4;
+}
+
+.layout-toggle-btn:hover {
+  background: #dcfce7;
+}
+
+/* ================== スマホ表示用の調整 ================== */
+@media (max-width: 480px) {
+  /* Bỏ padding body để không bị tràn ngang */
+  body {
+    padding: 0;
+  }
+
+  /* Cho toàn bộ editor-screen cao bằng màn hình, không margin-top */
+  #editor-screen {
+    margin-top: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* A4 phần giữa chiếm toàn bộ khoảng trống giữa toolbar và bottom bar */
+  #a4-wrapper {
+    flex: 1;
+    margin-top: 6px;     /* khoảng cách nhỏ với toolbar */
+    padding: 4px 0 0;      /* đệm trên/dưới của tờ A4 */
+    overflow-y: auto;     /* nếu A4 cao hơn màn thì cuộn phần này */
+  }
+
+  /* Bottom bar sát phía dưới hơn một chút */
+  #bottom-bar {
+    margin-top: 1px;
+  }
+}
+
+
+
+/* ===========================
+   🌙 NIGHT CAMPING THEME
+   =========================== */
+
+body.theme-night {
+  background: #111827;   /* hoặc màu nào cũng được */
+}
+
+body.theme-night #editor-screen.phone-container {
+  width: 390px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 10px 12px 21px;
+  display: flex;
+  flex-direction: column;
+
+  /* 🌄 Wallpaper cho toàn bộ app iPhone */
+  background: url("wallpaper.jpg") no-repeat center top;
+  background-size: cover;
+
+  box-shadow: none;
+}
+
+/* 3. Top bar */
+body.theme-night #toolbar {
+  width: 100%;
+  margin: 6px auto 0;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  box-shadow: none;
+}
+
+/* 4. Nút trong top bar (back + layout) */
+body.theme-night .nav-btn {
+  appearance: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: none;
+  transition: 0.15s ease;
+  font-family: inherit;
+}
+
+body.theme-night .nav-btn:hover {
+  background: #eef2ff;
+}
+
+/* 4b. Layout toggle – dùng icon, đổi theo template */
+body.theme-night #layout-toggle .layout-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* Mặc định: 3-block icon hiển thị, 2-block ẩn */
+body.theme-night #layout-toggle .layout-icon-2 {
+  display: none !important;
+}
+
+/* Khi đang ở layout 2blocks → đổi icon */
+body.theme-night #layout-toggle.is-2 .layout-icon-3 {
+  display: none !important;
+}
+body.theme-night #layout-toggle.is-2 .layout-icon-2 {
+  display: block !important;
+}
+
+
+/* icon mũi tên trong nút back */
+body.theme-night #back-button .icon {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 5. Nút PDF 保存 (primary) */
+body.theme-night .primary-btn {
+  appearance: none;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  color: #ffffff;
+  box-shadow: none;
+  transition: 0.15s ease;
+  font-family: inherit;
+}
+
+body.theme-night .primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+/* 6. A4 wrapper – bỏ nền trắng cũ, dùng nền trong suốt để lộ card */
+body.theme-night #a4-wrapper {
+  background: transparent;
+  padding: 20px 0;
+}
+
+/* 7. Block (ảnh + text) – nhìn như tờ giấy */
+body.theme-night .block {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px dashed #d4d4d8;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+
+body.theme-night .block:active {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.18);
+}
+
+/* Placeholder */
+body.theme-night .block.placeholder {
+  color: #94a3b8;
+  font-size: 11.5px;
+  text-align: center;
+}
+
+/* label + input */
+body.theme-night #bottom-bar .file-name-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+body.theme-night #bottom-bar .file-name-input label {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #555;
+}
+
+body.theme-night #bottom-bar #file-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 3px rgba(15,23,42,0.08);
+}
+
+body.theme-night #bottom-bar #file-name:focus {
+  outline: none;
+  border-color: #22c55e;                             /* xanh lá */
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.32);      /* phát sáng xanh */
+}
+
+body.theme-night.pdf-mode .block {
+  border: none !important;
+}
+
+/* ====== Top bar icon buttons (Clear & PDF) ====== */
+
+/* 1) Xóa viền + nền của 2 nút */
+#back-button.nav-btn,
+#export-pdf.primary-btn {
+  border: none;             /* bỏ viền */
+  background: transparent;  /* bỏ nền trắng / tím */
+  box-shadow: none;         /* nếu có bóng thì bỏ luôn */
+  min-width: 32px;          /* nút vuông gọn */
+  height: 32px;
+  padding: 0;               /* không thêm padding thừa */
+}
+
+/* 2) Tăng size icon bên trong */
+#back-button .icon,
+#export-pdf .icon {
+  font-size: 20px;          /* nếu icon là text / font */
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Nếu icon là SVG thì phóng to luôn SVG */
+#back-button .icon svg,
+#export-pdf .icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* 3) Đổi màu icon PDF sang đỏ */
+#export-pdf .icon,
+#export-pdf .icon svg {
+  color: #e02424;           /* hoặc #ff3b30 nếu muốn đỏ iOS hơn */
+}
+
+
+/* Khi export PDF: ẩn chữ hint trong block ảnh chưa chọn */
+body.theme-night.pdf-mode .block[data-type="image"].placeholder {
+  color: transparent !important;
+}
+
+/* ============================
+   🩵 Tappable animation – iOS style
+   ============================ */
+
+/* Tất cả thành phần "bấm được" trong theme-night */
+body.theme-night .block,
+body.theme-night .modal-buttons button {
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out;
+}
+
+/* Hover – chỉ cho block + nút trong modal */
+body.theme-night .block:hover,
+body.theme-night .modal-buttons button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
+/* Active – block + nút trong modal */
+body.theme-night .block:active,
+body.theme-night .modal-buttons button:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.20);
+}
+
+/* ============================
+   🔁 Top bar buttons – cùng cảm giác với 3 block khi nhấn
+   ============================ */
+
+/* 3 nút trên top bar (trash / layout / PDF) */
+body.theme-night #toolbar button {
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out;
+}
+
+/* Hover: chỉ thêm bóng nhẹ, KHÔNG nhô lên → khỏi bị "kẹt" sau OK/Cancel */
+body.theme-night #toolbar button:hover {
+  transform: none;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+}
+
+/* Active: nhún xuống y chang .block:active */
+body.theme-night #toolbar button:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.20);
+}
+
+
+/* ============================
+   🍎 iOS-like container & surfaces
+   ============================ */
+
+/* Khung "phone" chính */
+body.theme-night #editor-screen.phone-container {
+  border-radius: 28px;
+}
+
+/* Block bên trong – card trắng kiểu iOS */
+body.theme-night .block {
+  border-radius: 18px;
+  border: 1px dashed rgba(203, 213, 225, 0.9);
+  background: #ffffff;
+}
+
+/* Placeholder text mềm hơn */
+body.theme-night .block.placeholder {
+  color: #a1a1aa;
+}
+
+/* Nút trên toolbar – dạng pill mảnh */
+body.theme-night #toolbar .nav-btn,
+body.theme-night #toolbar .primary-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+/* Nút layout ở giữa – pill sáng hơn chút */
+body.theme-night #layout-toggle {
+  background: #f8fafc;
+}
+
+/* Nút 保存 trong modal – pill xanh kiểu iOS */
+body.theme-night #text-save {
+  border-radius: 999px;
+}
+
+/* Nút キャンセル trong modal – pill xám nhẹ */
+body.theme-night #text-cancel {
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #d4d4d8;
+}
+
+body.theme-night #editor-screen.phone-container {
+  border-radius: 0 !important;
+}
+
+body.theme-night .block {
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+/* Placeholder text vẫn căn giữa như cũ */
+body.theme-night .block.placeholder {
+  background: #ffffff !important;
+}
+
+body.theme-night .block img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill  !important;  /* giữ nguyên tỉ lệ ảnh */
+  object-position: center center !important;
+  display: block;
+  background: #ffffff;              /* nền trắng khi thừa không gian */
+}
+
+body.theme-night #a4-wrapper {
+  background: transparent !important;
+}
+
+/* A4 hơi trong để thấy wallpaper */
+body.theme-night #a4-page {
+  background: rgba(255, 255, 255, 0.92) !important;   /* 0.9–0.95 tuỳ bạn */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(148, 163, 184, 0.25);
+}
+
+/* 🔹 Top bar + Bottom bar = kính mờ trên nền wallpaper */
+body.theme-night #toolbar,
+body.theme-night #bottom-bar {
+  /* nền trắng nhưng trong suốt → nhìn thấy wallpaper phía sau */
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* cho Safari / iPhone */
+
+  /* viền + bo góc kiểu kính */
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+
+  /* bóng nhẹ để tách khỏi nền */
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.20),
+    0 0 0 0.5px rgba(148, 163, 184, 0.28);
+}
+
+/* === Minimal iOS style Image Picker === */
+
+/* Overlay mờ + blur nhẹ hơn (nhìn xuyên được UI phía sau) */
+/* Overlay kiểu spotlight – trung tâm tối hơn, rìa gần như bình thường */
+#image-source-modal {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(15, 23, 42, 0.34) 0%,     /* giữa đậm nhất */
+      rgba(15, 23, 42, 0.26) 28%,
+      rgba(15, 23, 42, 0.18) 48%,
+      rgba(15, 23, 42, 0.08) 72%,
+      rgba(15, 23, 42, 0.0) 100%     /* rìa gần như không che */
+    );
+  backdrop-filter: blur(4px) saturate(1.05) brightness(0.98);
+  -webkit-backdrop-filter: blur(4px) saturate(1.05) brightness(0.98);
+  z-index: 1200;
+
+  opacity: 0;
+  transition: opacity 0.22s ease-out;
+}
+
+
+#image-source-modal:not(.hidden) {
+  opacity: 1;
+}
+/* tăng khoảng trống giữa 2 nút icon */
+#image-source-modal .image-picker-btn:first-of-type {
+  margin-right: 46px;   /* chỉnh số này nếu muốn gần/xa hơn */
+}
+
+/* Zoom + fade icon khi modal hiện lên */
+#image-source-modal:not(.hidden) .image-picker-btn {
+  animation: pickerZoomIn 0.22s cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+/* Icon thứ 2 delay nhẹ cho cảm giác “stagger” */
+#image-source-modal:not(.hidden) .image-picker-btn:nth-of-type(2) {
+  animation-delay: 0.03s;
+}
+
+/* Keyframes cho hiệu ứng zoom-in */
+@keyframes pickerZoomIn {
+  from {
+    transform: scale(0.85) translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+
+/* Button icon tròn – không còn panel nền */
+/* === Nút tròn dùng chung cho image picker + text modal === */
+.image-picker-btn,
+.text-modal-icon-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: #ffffffee;  /* trắng hơi trong */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.65);
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    filter 0.18s ease-out;
+}
+
+/* Hover / active chung */
+.image-picker-btn:hover,
+.text-modal-icon-btn:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.7);
+}
+
+.image-picker-btn:active,
+.text-modal-icon-btn:active {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: 0 9px 20px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.96);
+}
+
+/* Icon size chung */
+.image-picker-btn svg,
+.text-modal-icon-btn svg {
+  width: 32px;
+  height: 32px;
+  color: #0f172a;
+}
+
+/* Màu riêng theo chức năng */
+#image-source-gallery svg {
+  color: #0ea5e9;   /* blue – gallery */
+}
+#image-source-camera svg {
+  color: #fb7185;   /* pink – camera */
+}
+#text-clear svg {
+  color: #0ea5e9;   /* giống gallery – clear */
+}
+#text-save svg {
+  color: #22c55e;   /* xanh lá – save */
+}
+
+/* Ripple chung */
+.image-picker-btn::after,
+.text-modal-icon-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(148, 163, 184, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width 0.32s ease-out,
+    height 0.32s ease-out,
+    opacity 0.42s ease-out;
+}
+
+.image-picker-btn:active::after,
+.text-modal-icon-btn:active::after {
+  width: 190%;
+  height: 190%;
+  opacity: 1;
+}
+
+/* --- Nút trong modal text: nhỏ & nhẹ hơn image picker --- */
+#text-edit-modal .text-modal-icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: #ffffff;                       /* trắng phẳng */
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: none;                          /* bỏ bóng */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+}
+
+/* icon nhỏ lại cho cân panel */
+#text-edit-modal .text-modal-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Clear trái – màu xám nhẹ, secondary */
+#text-clear {
+  order: 0;
+  border-color: rgba(148, 163, 184, 0.7);
+  background: #ffffff;
+}
+#text-clear svg {
+  color: #64748b;   /* xám xanh */
+}
+
+/* Save phải – primary, tự động đẩy sát phải */
+#text-save {
+  order: 1;
+  margin-left: auto;            /* 👉 đẩy sang phải */
+  border-color: #22c55e;
+  background: #22c55e;
+}
+#text-save svg {
+  color: #ffffff;
+}
+
+
+/* hover/active nhẹ nhàng hơn, không nhún mạnh, không đổi shadow */
+#text-edit-modal .text-modal-icon-btn:hover {
+  filter: brightness(1.03);
+  box-shadow: none;
+}
+
+#text-edit-modal .text-modal-icon-btn:active {
+  transform: scale(0.96);
+  box-shadow: none;
+  filter: brightness(0.98);
+}
+/* Nút SAVE trong modal text: nền trắng, icon xanh */
+#text-edit-modal #text-save {
+  background: #ffffff;                         /* bỏ nền xanh lá */
+  border-color: rgba(34, 197, 94, 0.8);        /* viền xanh nhẹ */
+}
+
+#text-edit-modal #text-save svg {
+  color: #22c55e;                              /* chỉ icon màu xanh */
+}
+
+/* Nút CLEAR: icon xanh dương nhẹ */
+#text-edit-modal #text-clear svg {
+  color: #0ea5e9;
+}
+
+
+/* 📄 Khi export PDF → tắt hiệu ứng kính, A4 trắng 100% */
+body.theme-night.pdf-mode #a4-page {
+  background: #ffffff !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
