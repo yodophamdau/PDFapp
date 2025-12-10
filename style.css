@@ -49,12 +49,6 @@ input {
 
 
 /* ================== 編集画面全体 ================== */
-
-#editor-screen {
-  margin-top: 16px; /* auto margin bỏ, để chiều rộng 100% */
-}
-
-
 /* 上部バー（戻る・ファイル名・PDF保存） */
 #toolbar {
   display: flex;
@@ -130,16 +124,6 @@ input {
 }
 
 /* ================== A4プレビューエリア ================== */
-
-#a4-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-
-  /* thêm 2 dòng này để khi xuất PDF, nền trắng và tờ giấy được canh đẹp */
-  background: #ffffff;
-  padding: 20px 0;
-}
 
 /* A4紙の外枠 */
 #a4-page {
@@ -388,6 +372,17 @@ body.theme-night.pdf-mode #a4-inner.layout-2blocks {
 
 
 /* ====== Text Edit Modal – overlay & panel ====== */
+
+/* Vùng chứa tờ A4 – là vùng scroll duy nhất */
+#a4-wrapper {
+  flex: 1;                    /* chiếm toàn bộ khoảng trống giữa top-bar và bottom-bar */
+  margin-top: 8px;
+  padding: 8px 0 8px;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;           /* chỉ phần này scroll nếu A4 cao quá */
+  background: transparent;
+}
 
 /* Overlay riêng cho modal text – đồng bộ style với image picker */
 /* ====== Text Edit Modal – bottom sheet style ====== */
@@ -870,6 +865,14 @@ body.theme-night #toolbar button:active {
   background: #dcfce7;
 }
 
+/* Mobile: thu nhỏ nhẹ tờ A4 để không đè lên bottom bar */
+@media (max-width: 500px) {
+  #a4-page {
+    transform: scale(0.96);
+    transform-origin: top center;
+  }
+}
+
 /* ================== スマホ表示用の調整 ================== */
 @media (max-width: 480px) {
   /* Bỏ padding body để không bị tràn ngang */
@@ -877,21 +880,35 @@ body.theme-night #toolbar button:active {
     padding: 0;
   }
 
-  /* Cho toàn bộ editor-screen cao bằng màn hình, không margin-top */
-  #editor-screen {
-    margin-top: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  /* Khung app tổng */
+#editor-screen {
+  margin-top: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  /* A4 phần giữa chiếm toàn bộ khoảng trống giữa toolbar và bottom bar */
-  #a4-wrapper {
-    flex: 1;
-    margin-top: 6px;     /* khoảng cách nhỏ với toolbar */
-    padding: 4px 0 0;      /* đệm trên/dưới của tờ A4 */
-    overflow-y: auto;     /* nếu A4 cao hơn màn thì cuộn phần này */
-  }
+/* Khung “màn iPhone” */
+#editor-screen.phone-container {
+  width: 390px;          /* cho iPhone 15, nhưng vẫn max-width:100% để máy nhỏ hơn không bị vỡ */
+  max-width: 100%;
+  margin: 0 auto;
+
+  /* dùng 100vh làm fallback, 100svh cho iOS mới để không bị trùm xuống dưới URL bar */
+  min-height: 100vh;
+  min-height: 100svh;
+
+  padding: 8px 10px 12px;
+  display: flex;
+  flex-direction: column;
+
+  /* Wallpaper */
+  background: url("wallpaper.jpg") no-repeat center top;
+  background-size: cover;
+
+  box-shadow: none;
+  border-radius: 0; /* viền thẳng 4 góc */
+}
 
   /* Bottom bar sát phía dưới hơn một chút */
   #bottom-bar {
@@ -1511,21 +1528,12 @@ body.theme-night.pdf-mode #a4-page {
     margin: 0;
   }
 
-  /* A4 là vùng scroll duy nhất ở giữa */
-  body.theme-night #a4-wrapper {
-    flex: 1;  /* chiếm toàn bộ khoảng giữa */
-    margin-top: 8px;
-    padding: 8px 0 8px;
-    display: flex;
-    justify-content: center;
-    overflow-y: auto;  /* nếu A4 cao quá thì chỉ phần này scroll */
-  }
-
   /* Bottom bar nằm sát dưới container */
   body.theme-night #bottom-bar {
     width: 100%;
     margin: 8px 0 0;
   }
 }
+
 
 
