@@ -34,7 +34,7 @@ body {
 
 body {
   margin: 0;
-  padding: 16px;
+  padding: 0;  /* ❗ bỏ padding 16px */
   background: #f3f4f6; /* 明るいグレー */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic",
     "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
@@ -906,6 +906,8 @@ body.theme-night #toolbar button:active {
    =========================== */
 
 body.theme-night {
+  margin: 0;
+  padding: 0;
   background: #111827;   /* hoặc màu nào cũng được */
 }
 
@@ -1485,45 +1487,45 @@ body.theme-night.pdf-mode #a4-page {
 }
 
 /* ============================
-   📱 iPhone / màn nhỏ – fix chiều cao
+   📱 iPhone / màn nhỏ – fix full-height
    ============================ */
-@media (max-width: 480px) {
+@media (max-width: 500px) {
   /* Toàn bộ màn editor chiếm trọn chiều cao thực tế (100dvh) */
   body.theme-night #editor-screen.phone-container {
     width: 100%;
     max-width: 100%;
     margin: 0;
-    /* dùng 100dvh để không bị dính bug 100vh của Safari */
-    min-height: 100dvh;
-
-    /* padding trên/dưới có tính safe-area */
+    min-height: 100dvh;  /* tránh bug 100vh của iOS */
     padding: env(safe-area-inset-top, 8px)
              10px
              max(env(safe-area-inset-bottom), 10px);
-
     display: flex;
     flex-direction: column;
     box-shadow: none;
-    border-radius: 0;
+    border-radius: 0 !important; /* chắc chắn không bo góc */
   }
 
-  /* A4 nằm giữa, phần này là vùng scroll duy nhất */
-  body.theme-night #a4-wrapper {
-    flex: 1;
-    margin-top: 8px;
-    padding: 4px 0 8px;
-    overflow-y: auto;
-  }
-
-  /* Top bar dính sát phía trên phần content (trong phone-container) */
+  /* Top bar dính phía trên trong container */
   body.theme-night #toolbar {
     width: 100%;
     margin: 0;
   }
 
-  /* Bottom bar luôn nằm trong khung, sát dưới nhưng không bị tràn */
+  /* A4 là vùng scroll duy nhất ở giữa */
+  body.theme-night #a4-wrapper {
+    flex: 1;  /* chiếm toàn bộ khoảng giữa */
+    margin-top: 8px;
+    padding: 8px 0 8px;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;  /* nếu A4 cao quá thì chỉ phần này scroll */
+  }
+
+  /* Bottom bar nằm sát dưới container */
   body.theme-night #bottom-bar {
     width: 100%;
     margin: 8px 0 0;
   }
 }
+
+
