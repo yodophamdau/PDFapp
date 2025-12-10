@@ -868,7 +868,7 @@ body.theme-night #toolbar button:active {
 /* Mobile: thu nhỏ nhẹ tờ A4 để không đè lên bottom bar */
 @media (max-width: 500px) {
   #a4-page {
-    transform: scale(0.96);
+    transform: scale(0.9);
     transform-origin: top center;
   }
 }
@@ -1503,37 +1503,52 @@ body.theme-night.pdf-mode #a4-page {
   -webkit-backdrop-filter: none !important;
 }
 
+
 /* ============================
    📱 iPhone / màn nhỏ – fix full-height
    ============================ */
 @media (max-width: 500px) {
-  /* Toàn bộ màn editor chiếm trọn chiều cao thực tế (100dvh) */
+  /* Toàn bộ màn editor chiếm trọn chiều cao nhìn thấy (100svh) */
   body.theme-night #editor-screen.phone-container {
     width: 100%;
     max-width: 100%;
     margin: 0;
-    min-height: 100dvh;  /* tránh bug 100vh của iOS */
-    padding: env(safe-area-inset-top, 8px)
-             10px
-             max(env(safe-area-inset-bottom), 10px);
+
+    /* dùng 100svh: chiều cao "nhỏ" hơn, tránh bị ăn mất bởi thanh URL Safari */
+    height: 100svh;
+    min-height: 100svh;
+
+    padding: env(safe-area-inset-top, 4px)
+             8px
+             max(env(safe-area-inset-bottom), 6px);
+
     display: flex;
     flex-direction: column;
     box-shadow: none;
-    border-radius: 0 !important; /* chắc chắn không bo góc */
+    border-radius: 0 !important;
   }
 
-  /* Top bar dính phía trên trong container */
+  /* Top bar dính sát cạnh trên của container */
   body.theme-night #toolbar {
     width: 100%;
-    margin: 0;
+    margin: 0 0 4px;
   }
 
-  /* Bottom bar nằm sát dưới container */
+  /* A4 wrapper – vùng scroll duy nhất ở giữa */
+  body.theme-night #a4-wrapper {
+    flex: 1;
+    padding: 4px 0 4px;
+    overflow-y: auto;
+  }
+
+  /* Bottom bar sát dưới nhưng vẫn cách nhẹ UI của Safari */
   body.theme-night #bottom-bar {
     width: 100%;
-    margin: 8px 0 0;
+    margin: 4px 0 0;
   }
 }
+
+
 
 
 
