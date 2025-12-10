@@ -4,6 +4,34 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
+/* Material Symbols (Google icon font) */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px; /* sẽ bị override trong từng chỗ */
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+
 body {
   margin: 0;
   padding: 16px;
@@ -481,6 +509,20 @@ body.theme-night.pdf-mode #a4-inner.layout-2blocks {
   height: 52px;
   border-radius: 999px;
 }
+
+/* Icon bên trong nút modal (Clear / Save) dùng Material Symbols */
+.text-modal-icon-btn .text-modal-icon {
+  font-size: 22px;                       /* Size M như bạn chọn */
+  color: rgba(148, 163, 184, 0.9);       /* màu bạc xám */
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Icon Save – màu trắng vì nút nền xanh */
+#text-save .text-modal-icon {
+  color: #ffffff;
+}
+
 
 /* Icon bên trong: nét rõ hơn */
 .text-modal-icon-btn svg {
@@ -1440,4 +1482,48 @@ body.theme-night.pdf-mode #a4-page {
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* ============================
+   📱 iPhone / màn nhỏ – fix chiều cao
+   ============================ */
+@media (max-width: 480px) {
+  /* Toàn bộ màn editor chiếm trọn chiều cao thực tế (100dvh) */
+  body.theme-night #editor-screen.phone-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    /* dùng 100dvh để không bị dính bug 100vh của Safari */
+    min-height: 100dvh;
+
+    /* padding trên/dưới có tính safe-area */
+    padding: env(safe-area-inset-top, 8px)
+             10px
+             max(env(safe-area-inset-bottom), 10px);
+
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  /* A4 nằm giữa, phần này là vùng scroll duy nhất */
+  body.theme-night #a4-wrapper {
+    flex: 1;
+    margin-top: 8px;
+    padding: 4px 0 8px;
+    overflow-y: auto;
+  }
+
+  /* Top bar dính sát phía trên phần content (trong phone-container) */
+  body.theme-night #toolbar {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Bottom bar luôn nằm trong khung, sát dưới nhưng không bị tràn */
+  body.theme-night #bottom-bar {
+    width: 100%;
+    margin: 8px 0 0;
+  }
 }
