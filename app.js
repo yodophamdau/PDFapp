@@ -28,23 +28,6 @@ function clearActiveBlockHighlight() {
   setActiveBlock(null);
 }
 
-// Tiện hàm clear cho dễ gọi
-function clearActiveBlockHighlight() {
-  setActiveBlock(null);
-}
-
-// ====== Block selection highlight ======
-function setActiveBlock(targetBlock) {
-  if (!a4Inner) return;
-
-  const blocks = a4Inner.querySelectorAll(".block");
-  blocks.forEach((b) => b.classList.remove("is-selected"));
-
-  if (targetBlock) {
-    targetBlock.classList.add("is-selected");
-  }
-}
-
 
 // toolbar関連
 const backButton = document.getElementById("back-button");
@@ -61,6 +44,7 @@ const imageSourceModal      = document.getElementById("image-source-modal");
 const imageSourceGalleryBtn = document.getElementById("image-source-gallery");
 const imageSourceCameraBtn  = document.getElementById("image-source-camera");
 const imageSourceCancelBtn  = document.getElementById("image-source-cancel");
+
 
 // 選択されたファイルを現在の画像ブロックに反映
 function applyFileToCurrentImageBlock(file) {
@@ -109,6 +93,17 @@ if (imageSourceCancelBtn) {
   });
 }
 
+// モーダルの外側をタップしたら閉じる（キャンセル扱い）
+if (imageSourceModal) {
+  imageSourceModal.addEventListener("click", (e) => {
+    // 直接 overlay 部分(#image-source-modal) をタップしたときだけ閉じる
+    if (e.target === imageSourceModal) {
+      imageSourceModal.classList.add("hidden");
+      currentImageBlock = null; // どのブロックも選択中ではない状態に戻す
+    }
+  });
+}
+
 
 fileNameInput.addEventListener("input", () => {
   saveAppState();
@@ -120,11 +115,59 @@ const inputGcode = document.getElementById("input-gcode");
 const inputNyukokubi = document.getElementById("input-nyukokubi");
 const inputKaisha = document.getElementById("input-kaisha");
 const inputNamae = document.getElementById("input-namae");
-const textCancelBtn = document.getElementById("text-cancel");
+const textClearBtn = document.getElementById("text-clear");
 const textSaveBtn = document.getElementById("text-save");
 
 // 今どのテキストブロックを編集しているか
 let currentTextBlock = null;
+
+// ================== iPhone キーボード対策 ==================
+
+// Các input sẽ làm hiện bàn phím
+const textInputsForKeyboard = [
+  inputGcode,
+  inputNyukokubi,
+  inputKaisha,
+  inputNamae,
+  fileNameInput
+];
+
+function keyboardFocusHandler(target) {
+  // Báo cho CSS biết đang có keyboard (giữ lại nếu sau này muốn dùng class này)
+  document.body.classList.add("keyboard-up");
+
+  // ❌ Không chạm tới textModal nữa
+  // → Modal sẽ không bị thêm class keyboard-up,
+  //   nên behave giống như filename textbar.
+}
+
+function keyboardBlurHandler() {
+  // Chờ một chút để xem có chuyển focus sang input khác không
+  setTimeout(() => {
+    const active = document.activeElement;
+    const isInput =
+      active &&
+      (active.tagName === "INPUT" || active.tagName === "TEXTAREA");
+
+    // Nếu không còn input nào đang focus → tắt trạng thái keyboard-up
+    if (!isInput) {
+      document.body.classList.remove("keyboard-up");
+      if (textModal) {
+        textModal.classList.remove("keyboard-up");
+      }
+    }
+  }, 150);
+}
+
+// Gắn sự kiện focus/blur cho từng input
+textInputsForKeyboard.forEach((el) => {
+  if (!el) return;
+  el.addEventListener("focus", (event) => {
+    keyboardFocusHandler(event.target);
+  });
+  el.addEventListener("blur", keyboardBlurHandler);
+});
+
 
 // ================== レイアウト構築共通関数 ==================
 
@@ -187,7 +230,7 @@ function createBlock(index, type, placeholder) {
   block.textContent = placeholder;
 
   block.addEventListener("click", () => {
-    // tô viền xanh block đang được chọn
+    // 👉 tô viền xanh block đang được chọn
     setActiveBlock(block);
 
     const blockType = block.dataset.type;
@@ -201,34 +244,29 @@ function createBlock(index, type, placeholder) {
   a4Inner.appendChild(block);
 }
 
-// ----- Click ngoài vùng A4 thì bỏ highlight -----
-if (editorScreen && a4Page) {
-  editorScreen.addEventListener("click", (e) => {
-    // Nếu click nằm TRONG tờ A4 thì không làm gì
-    if (a4Page.contains(e.target)) return;
 
-    // Click ở toolbar, bottom-bar, hoặc vùng wallpaper → clear viền xanh
-    clearActiveBlockHighlight();
-  });
-}
-
+// ================== 画像処理 ==================
 // Click outside A4 → clear block highlight
 if (editorScreen && a4Page) {
   editorScreen.addEventListener("click", (e) => {
     // Nếu click nằm TRONG tờ A4 thì không làm gì
     if (a4Page.contains(e.target)) return;
+
     // Click toolbar / bottom-bar / wallpaper → clear viền xanh
     clearActiveBlockHighlight();
   });
 }
 
-// ================== 画像処理 ==================
-
-// 画像ブロッククリック → モーダルでPhotos / Cameraを選択
+// 画像ブロッククリック → iPhone標準のファイル選択ポップアップを直接開く
 function handleImageBlockClick(block) {
   currentImageBlock = block;
-  if (!imageSourceModal) return;
-  imageSourceModal.classList.remove("hidden");
+
+  // dùng input "gallery" vì nó là type="file" accept="image/*"
+  // → iPhone sẽ hiện sheet mặc định: Photo Library / Take Photo / Choose File
+  if (!imageInputGallery) return;
+
+  imageInputGallery.value = "";   // reset để lần sau change vẫn chạy
+  imageInputGallery.click();      // gọi trực tiếp popup mặc định của iOS
 }
 
 // Photos（フォト）から選択された画像
@@ -266,11 +304,30 @@ function handleTextBlockClick(block) {
   textModal.classList.remove("hidden");
 }
 
-// キャンセル → 何もせず閉じる
-textCancelBtn.addEventListener("click", () => {
-  textModal.classList.add("hidden");
-  currentTextBlock = null;
-});
+// クリア → 4 ô input về rỗng（モーダルは開いたまま）
+if (textClearBtn) {
+  textClearBtn.addEventListener("click", () => {
+    inputGcode.value = "";
+    inputNyukokubi.value = "";
+    inputKaisha.value = "";
+    inputNamae.value = "";
+  });
+}
+
+// モーダルの外側をタップしたら閉じる（キャンセル扱い）
+if (textModal) {
+  textModal.addEventListener("click", (e) => {
+    // overlay phần tối (chính #text-edit-modal) mới đóng
+    if (e.target === textModal) {
+      textModal.classList.add("hidden");
+      currentTextBlock = null;
+
+      // đóng modal → bỏ luôn viền xanh block đang chọn
+      clearActiveBlockHighlight();
+    }
+  });
+}
+
 
 // 保存 → 4項目を反映してブロックに表示
 textSaveBtn.addEventListener("click", () => {
@@ -281,14 +338,16 @@ textSaveBtn.addEventListener("click", () => {
   const kaisha = inputKaisha.value.trim();
   const namae = inputNamae.value.trim();
 
+  // ブロックのdata属性に保持（後で編集のとき復元できるように）
   currentTextBlock.dataset.gcode = gcode;
   currentTextBlock.dataset.nyukokubi = nyukokubi;
   currentTextBlock.dataset.kaisha = kaisha;
   currentTextBlock.dataset.namae = namae;
 
+  // ブロックの表示内容を表形式で描画
   renderTextContent(currentTextBlock, gcode, nyukokubi, kaisha, namae);
 
-  // Tự động generate file name
+  // ファイル名自動生成：テキスト保存のたびに常に更新
   const part1 = gcode || "";
   const part3 = kaisha || "";
   const part4 = namae || "";
@@ -306,23 +365,6 @@ textSaveBtn.addEventListener("click", () => {
   // đóng modal bằng nút SAVE → bỏ luôn highlight block
   clearActiveBlockHighlight();
 });
-
-
-// モーダルの外側をタップしたら閉じる（キャンセル扱い）
-if (textModal) {
-  textModal.addEventListener("click", (e) => {
-    // overlay phần tối (chính #text-edit-modal) mới đóng
-    if (e.target === textModal) {
-      textModal.classList.add("hidden");
-      currentTextBlock = null;
-
-      // đóng modal → bỏ luôn highlight block đang chọn
-      clearActiveBlockHighlight();
-    }
-  });
-}
-
-
 
 // ================== 状態保存 / 復元 ==================
 // テキストブロックの中身を「ラベル＋値」の表として描画
@@ -641,3 +683,5 @@ window.addEventListener("DOMContentLoaded", () => {
     fileNameInput.value = "";
   }
 });
+
+

@@ -3,14 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <title>A4 PDF 作成</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Viewport updated for full-screen and safe area on iPhone -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- PWA / iOS web app settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="A4 PDF 作成">
+
+  <!-- Home screen icon (place icon.png next to this file) -->
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <!-- Optional theme color for status bar / browser UI -->
+  <meta name="theme-color" content="#020617">
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="theme-night">
   <!-- 4項目入力用モーダル -->
   <div id="text-edit-modal" class="modal hidden">
     <div class="modal-content">
-      <h2>情報を入力</h2>
+      <h2>情報入力</h2>
 
       <label class="modal-row">
         <span>入国G：</span>
@@ -32,64 +45,108 @@
         <input id="input-namae" type="text" />
       </label>
 
-      <div class="modal-buttons">
-        <button id="text-cancel">キャンセル</button>
-        <button id="text-save">保存</button>
+      <div class="modal-buttons text-modal-actions">
+          <!-- icon cây chổi, nét giống icon image -->
+        <button
+          id="text-clear"
+          type="button"
+          class="text-modal-icon-btn"
+          aria-label="テキストをクリア"
+        >
+          <!-- icon eraser: rõ là “xoá nội dung” -->
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <!-- thân cục tẩy -->
+            <path
+              d="M4.5 14.5L11 8l3-3 5.5 5.5-3 3-6.5 6.5H7L4.5 17z"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <!-- đường gạch sạch phía dưới -->
+            <path
+              d="M9 20.5h7"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+
+        </button>
+        <!-- SAVE -->
+        <button
+          id="text-save"
+          type="button"
+          class="text-modal-icon-btn text-modal-icon-primary"
+          aria-label="保存"
+        >
+          <!-- icon floppy disk – nhìn đúng form hơn -->
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <!-- thân đĩa mềm -->
+            <path
+              d="M4 3h13l3 3v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+            />
+            <!-- cửa sổ label -->
+            <rect
+              x="7" y="6" width="7" height="5" rx="1.2"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <!-- khe đọc -->
+            <rect
+              x="7" y="14" width="10" height="4" rx="1"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <!-- lỗ tròn (trục quay) -->
+            <circle
+              cx="17" cy="10" r="1.2"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
 
-    <!-- 4項目入力用モーダル -->
-  <div id="text-edit-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>情報を入力</h2>
 
-      <label class="modal-row">
-        <span>入国G：</span>
-        <input id="input-gcode" type="text" />
-      </label>
-
-      <label class="modal-row">
-        <span>入国日：</span>
-        <input id="input-nyukokubi" type="text" />
-      </label>
-
-      <label class="modal-row">
-        <span>会社名：</span>
-        <input id="input-kaisha" type="text" />
-      </label>
-
-      <label class="modal-row">
-        <span>氏名：</span>
-        <input id="input-namae" type="text" />
-      </label>
-
-      <div class="modal-buttons">
-        <button id="text-cancel">キャンセル</button>
-        <button id="text-save">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ⚡ 画像ソース選択モーダル（Photos / Camera） -->
+  <!-- ⚡ 画像ソース選択モーダル（アイコンのみ / タップ外で閉じる） -->
   <div id="image-source-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>画像の選択方法</h2>
-
-      <div class="image-source-buttons">
-        <button id="image-source-gallery" type="button">
-          フォトから選ぶ（Photos）
-        </button>
-        <button id="image-source-camera" type="button">
-          カメラで撮影
-        </button>
-      </div>
-
-      <div class="modal-buttons">
-        <button id="image-source-cancel" type="button">キャンセル</button>
-      </div>
-    </div>
+    <button
+      id="image-source-gallery"
+      type="button"
+      aria-label="フォトライブラリから選択"
+      class="image-picker-btn"
+    >
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2.4" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="9" cy="10" r="1.7" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M7 16l3-3 2.5 2.6 3.4-4.1 3.1 4.5"
+          stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button
+      id="image-source-camera"
+      type="button"
+      aria-label="カメラで撮影"
+      class="image-picker-btn"
+    >
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="7" width="18" height="12" rx="2.4" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M9 7l1.2-2h3.6L15 7"
+          stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="18" cy="10" r="0.9" fill="currentColor"/>
+      </svg>
+    </button>
   </div>
+
 
 
 

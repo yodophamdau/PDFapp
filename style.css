@@ -4,29 +4,61 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
+/* Material Symbols (Google icon font) */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px; /* sẽ bị override trong từng chỗ */
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+
 body {
   margin: 0;
-  padding: 16px;
+  padding: 0;  /* ❗ bỏ padding 16px */
   background: #f3f4f6; /* 明るいグレー */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic",
     "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
   color: #333;
 }
 
-/* リンクなどを選択しても青枠が出にくいように */
 button,
-input {
+input,
+textarea,
+select {
   font-family: inherit;
+}
+
+/* 🚫 Ngăn Safari iPhone auto-zoom khi focus input */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important; /* >=16px thì Safari không zoom */
+  }
 }
 
 
 /* ================== 編集画面全体 ================== */
-
-#editor-screen {
-  margin-top: 16px; /* auto margin bỏ, để chiều rộng 100% */
-}
-
-
 /* 上部バー（戻る・ファイル名・PDF保存） */
 #toolbar {
   display: flex;
@@ -103,16 +135,6 @@ input {
 
 /* ================== A4プレビューエリア ================== */
 
-#a4-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-
-  /* thêm 2 dòng này để khi xuất PDF, nền trắng và tờ giấy được canh đẹp */
-  background: #ffffff;
-  padding: 20px 0;
-}
-
 /* A4紙の外枠 */
 #a4-page {
   background: #ffffff;
@@ -146,18 +168,18 @@ input {
   color: #555;
 }
 
-/* Block đang được chọn (image 1 / 2 / text) */
+.block.placeholder {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* Block đang được chọn (image / text) */
 .block.is-selected {
   border-style: solid;
   border-color: #22c55e;
   box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
 }
 
-
-.block.placeholder {
-  color: #9ca3af;
-  font-size: 13px;
-}
 
 /* スペーサー行（見えない行） */
 .spacer {
@@ -324,7 +346,7 @@ body.theme-night.pdf-mode #a4-inner.layout-2blocks {
 
 .modal-content {
   background: #ffffff;
-  padding: 18px 20px 16px;
+  padding: 20px 24px 18px;
   border-radius: 10px;
   width: 90%;
   max-width: 420px;
@@ -332,20 +354,248 @@ body.theme-night.pdf-mode #a4-inner.layout-2blocks {
   font-size: 14px;
   border: 1px solid #e5e7eb;
 }
-
 .modal-content h2 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 15px;
   font-weight: 600;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  text-align: center;
+  color: #111827;
+  border-bottom: none;
+  letter-spacing: 0.04em;
 }
+
+/* Title riêng của modal text – có gạch nhấn bên dưới */
+#text-edit-modal .modal-content h2 {
+  font-size: 16px;
+  font-weight: 650;
+  position: relative;
+}
+
+#text-edit-modal .modal-content h2::after {
+  content: "";
+  display: block;
+
+  /* ⭐ kéo dài line ra theo chiều ngang modal */
+  width: 25%;             /* có thể chỉnh 55% ~ 80% tùy mắt bạn */
+
+  height: 2px;          /* mỏng hơn 1 chút cho tinh tế */
+  
+  /* ⭐ đổi sang xám nhạt, blend với panel kính mờ */
+  background: rgba(148, 163, 184, 0.75);
+
+  border-radius: 3px;
+  margin: 5px auto 2px;   /* tăng khoảng cách dưới title cho thoáng */
+}
+
+
+
+/* ====== Text Edit Modal – overlay & panel ====== */
+
+/* Vùng chứa tờ A4 – là vùng scroll duy nhất */
+#a4-wrapper {
+  flex: 1;                    /* chiếm toàn bộ khoảng trống giữa top-bar và bottom-bar */
+  margin-top: 8px;
+  padding: 8px 0 8px;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;           /* chỉ phần này scroll nếu A4 cao quá */
+  background: transparent;
+}
+
+/* Overlay riêng cho modal text – đồng bộ style với image picker */
+/* ====== Text Edit Modal – bottom sheet style ====== */
+#text-edit-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;           /* ⭐ đưa panel lên chính giữa màn hình */
+  padding: 0 12px;               /* bỏ padding dưới để thật sự nằm giữa */
+
+  /* overlay mờ nhẹ, giữ nguyên như cũ */
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(15, 23, 42, 0.34) 0%,
+      rgba(15, 23, 42, 0.18) 45%,
+      rgba(15, 23, 42, 0.08) 75%,
+      rgba(15, 23, 42, 0.0) 100%
+    );
+  backdrop-filter: blur(10px) saturate(1.05) brightness(0.98);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05) brightness(0.98);
+  z-index: 1100;
+
+  opacity: 0;
+  transition: opacity 0.22s ease-out;
+}
+
+#text-edit-modal.hidden {
+  display: none;
+}
+
+/* khi mở */
+#text-edit-modal:not(.hidden) {
+  opacity: 1;
+}
+
+
+/* Khi mở modal text */
+#text-edit-modal:not(.hidden) {
+  opacity: 1;
+}
+
+/* Panel bên trong – bo tròn, shadow đẹp hơn + zoom-in */
+/* Panel bottom sheet – kính mờ giống top/bottom bar */
+#text-edit-modal .modal-content {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+
+  /* ⭐ modal nằm giữa nên bo đều 4 góc cho đẹp */
+  border-radius: 20px;
+
+  padding: 16px 18px 14px;
+
+  background: rgba(255, 255, 255, 0.70);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, 0.35),
+    0 0 0 0.5px rgba(148, 163, 184, 0.35);
+
+  /* animation nhẹ khi hiện lên (zoom nhẹ từ giữa) */
+  transform: scale(0.98);
+  opacity: 0;
+  transition:
+    transform 0.24s cubic-bezier(0.22, 0.7, 0.3, 1),
+    opacity 0.24s ease-out;
+}
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+
+/* Khi modal hiện → panel pop-in nhẹ */
+#text-edit-modal:not(.hidden) .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Hàng nút trong bottom sheet – Clear trái, Save phải */
+.text-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   /* 👉 đẩy 2 nút sang 2 bên */
+  margin-top: 14px;
+  padding: 0 4px 2px;
+}
+
+
+/* Nút icon trong modal text */
+/* Nút icon: to hơn, cân panel */
+.text-modal-icon-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+}
+
+/* Icon bên trong nút modal (Clear / Save) dùng Material Symbols */
+.text-modal-icon-btn .text-modal-icon {
+  font-size: 22px;                       /* Size M như bạn chọn */
+  color: rgba(148, 163, 184, 0.9);       /* màu bạc xám */
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Icon Save – màu trắng vì nút nền xanh */
+#text-save .text-modal-icon {
+  color: #ffffff;
+}
+
+
+/* Icon bên trong: nét rõ hơn */
+.text-modal-icon-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Nút SAVE màu xanh – bóng mềm hơn */
+.text-modal-icon-primary {
+  border-color: #22c55e;
+  background: linear-gradient(145deg, #25d366, #1da751);
+}
+.text-modal-icon-primary svg {
+  color: #ffffff;
+}
+
+
+/* Nút 保存 – màu xanh lá, đồng bộ app */
+.text-modal-icon-primary {
+  border-color: #22c55e;
+  background: #22c55e;
+}
+
+.text-modal-icon-primary svg {
+  color: #ffffff;
+}
+
+/* Hover / active giống iOS */
+.text-modal-icon-btn:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+}
+
+.text-modal-icon-btn:active {
+  transform: translateY(1px) scale(0.94);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.26);
+}
+
+/* Ripple effect khi tap */
+.text-modal-icon-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(148, 163, 184, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width 0.32s ease-out,
+    height 0.32s ease-out,
+    opacity 0.4s ease-out;
+}
+
+.text-modal-icon-btn:active::after {
+  width: 200%;
+  height: 200%;
+  opacity: 1;
+}
+
 
 /* 各行（ラベル＋入力） */
 .modal-row {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;  /* khoảng cách dày hơn */
+}
+
+#text-edit-modal .modal-row:last-of-type {
+  margin-bottom: 0;     /* hàng cuối không bị dư khoảng trắng */
 }
 
 .modal-row span {
@@ -620,6 +870,32 @@ body.theme-night #toolbar button:active {
   background: #dcfce7;
 }
 
+/* Fit A4 vào khoảng trống giữa topbar và bottombar */
+@media (max-width: 500px) {
+  #a4-wrapper {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* căn giữa A4 theo chiều cao */
+    overflow: hidden;    /* tránh lộ phần thừa */
+    margin: 4px 0;
+  }
+
+  #a4-page {
+    /* Chiếm toàn bộ chiều cao vùng trống */
+    height: 100%;
+    aspect-ratio: 1 / 1.414; /* tỉ lệ chuẩn A4 */
+
+    max-width: 100%;
+    max-height: 100%;
+
+    transform: none !important;  /* Hủy scale cũ */
+    transform-origin: top center;
+  }
+}
+
+
 /* ================== スマホ表示用の調整 ================== */
 @media (max-width: 480px) {
   /* Bỏ padding body để không bị tràn ngang */
@@ -627,21 +903,35 @@ body.theme-night #toolbar button:active {
     padding: 0;
   }
 
-  /* Cho toàn bộ editor-screen cao bằng màn hình, không margin-top */
-  #editor-screen {
-    margin-top: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  /* Khung app tổng */
+#editor-screen {
+  margin-top: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  /* A4 phần giữa chiếm toàn bộ khoảng trống giữa toolbar và bottom bar */
-  #a4-wrapper {
-    flex: 1;
-    margin-top: 6px;     /* khoảng cách nhỏ với toolbar */
-    padding: 4px 0 0;      /* đệm trên/dưới của tờ A4 */
-    overflow-y: auto;     /* nếu A4 cao hơn màn thì cuộn phần này */
-  }
+/* Khung “màn iPhone” */
+#editor-screen.phone-container {
+  width: 390px;          /* cho iPhone 15, nhưng vẫn max-width:100% để máy nhỏ hơn không bị vỡ */
+  max-width: 100%;
+  margin: 0 auto;
+
+  /* dùng 100vh làm fallback, 100svh cho iOS mới để không bị trùm xuống dưới URL bar */
+  min-height: 100vh;
+  min-height: 100svh;
+
+  padding: 8px 10px 12px;
+  display: flex;
+  flex-direction: column;
+
+  /* Wallpaper */
+  background: url("wallpaper.jpg") no-repeat center top;
+  background-size: cover;
+
+  box-shadow: none;
+  border-radius: 0; /* viền thẳng 4 góc */
+}
 
   /* Bottom bar sát phía dưới hơn một chút */
   #bottom-bar {
@@ -656,6 +946,8 @@ body.theme-night #toolbar button:active {
    =========================== */
 
 body.theme-night {
+  margin: 0;
+  padding: 0;
   background: #111827;   /* hoặc màu nào cũng được */
 }
 
@@ -663,7 +955,7 @@ body.theme-night #editor-screen.phone-container {
   width: 390px;
   margin: 0 auto;
   min-height: 100vh;
-  padding: 10px 12px 21px;
+  padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
 
@@ -673,6 +965,13 @@ body.theme-night #editor-screen.phone-container {
 
   box-shadow: none;
 }
+
+/* Khi bàn phím iPhone bật → cho phép trang tự scroll, không ép full-height */
+body.theme-night.keyboard-up #editor-screen.phone-container {
+  min-height: auto;
+  height: auto;
+}
+
 
 /* 3. Top bar */
 body.theme-night #toolbar {
@@ -819,17 +1118,14 @@ body.theme-night .block.is-selected {
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.32);
 }
 
-
 body.theme-night.pdf-mode .block {
   border: none !important;
 }
 
-/* Khi export PDF thì bỏ viền xanh luôn */
 body.theme-night.pdf-mode .block.is-selected {
   border: none !important;
   box-shadow: none !important;
 }
-
 
 /* ====== Top bar icon buttons (Clear & PDF) ====== */
 
@@ -847,7 +1143,7 @@ body.theme-night.pdf-mode .block.is-selected {
 /* 2) Tăng size icon bên trong */
 #back-button .icon,
 #export-pdf .icon {
-  font-size: 20px;          /* nếu icon là text / font */
+  font-size: 28px;          /* nếu icon là text / font */
   line-height: 1;
   display: flex;
   align-items: center;
@@ -857,8 +1153,8 @@ body.theme-night.pdf-mode .block.is-selected {
 /* Nếu icon là SVG thì phóng to luôn SVG */
 #back-button .icon svg,
 #export-pdf .icon svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 
 /* 3) Đổi màu icon PDF sang đỏ */
@@ -1029,29 +1325,216 @@ body.theme-night #bottom-bar {
     0 10px 24px rgba(15, 23, 42, 0.20),
     0 0 0 0.5px rgba(148, 163, 184, 0.28);
 }
-/* 画像ソース選択モーダル専用ボタン */
-#image-source-modal .image-source-buttons {
+
+/* === Minimal iOS style Image Picker === */
+
+/* Overlay mờ + blur nhẹ hơn (nhìn xuyên được UI phía sau) */
+/* Overlay kiểu spotlight – trung tâm tối hơn, rìa gần như bình thường */
+#image-source-modal {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(15, 23, 42, 0.34) 0%,     /* giữa đậm nhất */
+      rgba(15, 23, 42, 0.26) 28%,
+      rgba(15, 23, 42, 0.18) 48%,
+      rgba(15, 23, 42, 0.08) 72%,
+      rgba(15, 23, 42, 0.0) 100%     /* rìa gần như không che */
+    );
+  backdrop-filter: blur(4px) saturate(1.05) brightness(0.98);
+  -webkit-backdrop-filter: blur(4px) saturate(1.05) brightness(0.98);
+  z-index: 1200;
+
+  opacity: 0;
+  transition: opacity 0.22s ease-out;
+}
+
+
+#image-source-modal:not(.hidden) {
+  opacity: 1;
+}
+/* tăng khoảng trống giữa 2 nút icon */
+#image-source-modal .image-picker-btn:first-of-type {
+  margin-right: 46px;   /* chỉnh số này nếu muốn gần/xa hơn */
+}
+
+/* Zoom + fade icon khi modal hiện lên */
+#image-source-modal:not(.hidden) .image-picker-btn {
+  animation: pickerZoomIn 0.22s cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+/* Icon thứ 2 delay nhẹ cho cảm giác “stagger” */
+#image-source-modal:not(.hidden) .image-picker-btn:nth-of-type(2) {
+  animation-delay: 0.03s;
+}
+
+/* Keyframes cho hiệu ứng zoom-in */
+@keyframes pickerZoomIn {
+  from {
+    transform: scale(0.85) translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+
+/* Button icon tròn – không còn panel nền */
+/* === Nút tròn dùng chung cho image picker + text modal === */
+.image-picker-btn,
+.text-modal-icon-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: #ffffffee;  /* trắng hơi trong */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-  margin-bottom: 10px;
-}
-
-#image-source-modal .image-source-buttons button {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 13px;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.65);
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    filter 0.18s ease-out;
 }
 
-#image-source-modal .image-source-buttons button:hover {
-  background: #eef2ff;
+/* Hover / active chung */
+.image-picker-btn:hover,
+.text-modal-icon-btn:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.7);
 }
 
+.image-picker-btn:active,
+.text-modal-icon-btn:active {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: 0 9px 20px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.96);
+}
+
+/* Icon size chung */
+.image-picker-btn svg,
+.text-modal-icon-btn svg {
+  width: 32px;
+  height: 32px;
+  color: #0f172a;
+}
+
+/* Màu riêng theo chức năng */
+#image-source-gallery svg {
+  color: #0ea5e9;   /* blue – gallery */
+}
+#image-source-camera svg {
+  color: #fb7185;   /* pink – camera */
+}
+#text-clear svg {
+  color: #0ea5e9;   /* giống gallery – clear */
+}
+#text-save svg {
+  color: #22c55e;   /* xanh lá – save */
+}
+
+/* Ripple chung */
+.image-picker-btn::after,
+.text-modal-icon-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(148, 163, 184, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width 0.32s ease-out,
+    height 0.32s ease-out,
+    opacity 0.42s ease-out;
+}
+
+.image-picker-btn:active::after,
+.text-modal-icon-btn:active::after {
+  width: 190%;
+  height: 190%;
+  opacity: 1;
+}
+
+/* --- Nút trong modal text: nhỏ & nhẹ hơn image picker --- */
+#text-edit-modal .text-modal-icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: #ffffff;                       /* trắng phẳng */
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: none;                          /* bỏ bóng */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+}
+
+/* icon nhỏ lại cho cân panel */
+#text-edit-modal .text-modal-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Clear trái – màu xám nhẹ, secondary */
+#text-clear {
+  order: 0;
+  border-color: rgba(148, 163, 184, 0.7);
+  background: #ffffff;
+}
+#text-clear svg {
+  color: #64748b;   /* xám xanh */
+}
+
+/* Save phải – primary, tự động đẩy sát phải */
+#text-save {
+  order: 1;
+  margin-left: auto;            /* 👉 đẩy sang phải */
+  border-color: #22c55e;
+  background: #22c55e;
+}
+#text-save svg {
+  color: #ffffff;
+}
+
+
+/* hover/active nhẹ nhàng hơn, không nhún mạnh, không đổi shadow */
+#text-edit-modal .text-modal-icon-btn:hover {
+  filter: brightness(1.03);
+  box-shadow: none;
+}
+
+#text-edit-modal .text-modal-icon-btn:active {
+  transform: scale(0.96);
+  box-shadow: none;
+  filter: brightness(0.98);
+}
+/* Nút SAVE trong modal text: nền trắng, icon xanh */
+#text-edit-modal #text-save {
+  background: #ffffff;                         /* bỏ nền xanh lá */
+  border-color: rgba(34, 197, 94, 0.8);        /* viền xanh nhẹ */
+}
+
+#text-edit-modal #text-save svg {
+  color: #22c55e;                              /* chỉ icon màu xanh */
+}
+
+/* Nút CLEAR: icon xanh dương nhẹ */
+#text-edit-modal #text-clear svg {
+  color: #0ea5e9;
+}
 
 
 /* 📄 Khi export PDF → tắt hiệu ứng kính, A4 trắng 100% */
@@ -1061,3 +1544,77 @@ body.theme-night.pdf-mode #a4-page {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+
+/* ============================
+   📱 iPhone / màn nhỏ – fix full-height
+   ============================ */
+@media (max-width: 500px) {
+  /* Toàn bộ màn editor chiếm trọn chiều cao nhìn thấy (100svh) */
+  body.theme-night #editor-screen.phone-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+
+    /* dùng 100svh: chiều cao "nhỏ" hơn, tránh bị ăn mất bởi thanh URL Safari */
+    height: 100svh;
+    min-height: 100svh;
+
+    padding: env(safe-area-inset-top, 4px)
+             8px
+             max(env(safe-area-inset-bottom), 6px);
+
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    border-radius: 0 !important;
+  }
+
+  /* Top bar dính sát cạnh trên của container */
+  body.theme-night #toolbar {
+    width: 100%;
+    margin: 0 0 4px;
+  }
+
+  /* A4 wrapper – vùng scroll duy nhất ở giữa */
+  body.theme-night #a4-wrapper {
+    flex: 1;
+    padding: 4px 0 4px;
+    overflow-y: auto;
+  }
+
+  /* Bottom bar sát dưới nhưng vẫn cách nhẹ UI của Safari */
+  body.theme-night #bottom-bar {
+    width: 100%;
+    margin: 4px 0 0;
+  }
+}
+
+/* ============ Modal Buttons – phóng to icon cho cân đối ============ */
+.text-modal-icon-btn svg {
+  width: 60px;
+  height: 60px;
+}
+
+.text-modal-icon-btn {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%; /* đẹp hơn, đồng bộ icon tròn */
+}
+
+/* Floppy icon SAVE – xám đậm, vẫn giữ border xanh */
+#text-edit-modal #text-save svg {
+  color: #475569 !important; /* xám đậm – Slate600 */
+}
+
+/* Viền xanh chỉ để NHẤN chức năng save */
+#text-edit-modal #text-save {
+  background: #ffffff;                         /* nền trắng */
+  border-color: rgba(34,197,94,0.85);          /* viền xanh lá nhạt */
+}
+
+
+
