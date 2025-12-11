@@ -200,22 +200,22 @@ select {
 #a4-inner.layout-3blocks {
   display: grid;
   grid-template-rows:
-    6fr   /* spacer-top */
-    36fr  /* block-1 (画像1) */
+    9fr   /* spacer-top */
+    33fr  /* block-1 (画像1) */
     1fr   /* spacer-mid-1 */
-    36fr  /* block-2 (画像2) */
+    33fr  /* block-2 (画像2) */
     1fr   /* spacer-mid-2 */
     17fr  /* block-3 (テキスト) */
-    4fr;  /* spacer-bottom */
+    6fr;  /* spacer-bottom */
 }
 body.theme-night.pdf-mode #a4-inner.layout-3blocks {
   grid-template-rows:
-    9fr   /* spacer-top */
-    36fr  /* block-1 (画像1) */
+    12fr   /* spacer-top */
+    33fr  /* block-1 (画像1) */
     1fr   /* spacer-mid-1 */
-    36fr  /* block-2 (画像2) */
+    33fr  /* block-2 (画像2) */
     1fr   /* spacer-mid-2 */
-    17fr  /* block-3 (テキスト) */
+    19fr  /* block-3 (テキスト) */
     1fr;  /* spacer-bottom */
 }
 
@@ -225,18 +225,18 @@ body.theme-night.pdf-mode #a4-inner.layout-3blocks {
 #a4-inner.layout-2blocks {
   display: grid;
   grid-template-rows:
-    7fr   /* spacer-top */
+    10fr   /* spacer-top */
     17fr  /* spacer-mid-1（画像上の余白） */
-    36fr  /* block-1 (画像) */
+    33fr  /* block-1 (画像) */
     1fr   /* spacer-mid-2（画像とテキストの間） */
     17fr  /* block-2 (テキスト) */
-    24fr; /* spacer-bottom */
+    22fr; /* spacer-bottom */
 }
 body.theme-night.pdf-mode #a4-inner.layout-2blocks {
   grid-template-rows:
-    14fr  /* spacer-top: lề trên */
+    17fr  /* spacer-top: lề trên */
     15fr  /* spacer trên ảnh */
-    36r  /* block-1 (画像) – ảnh to hơn 1 chút */
+    33r  /* block-1 (画像) – ảnh to hơn 1 chút */
     2fr   /* khoảng giữa ảnh và text */
     18fr  /* block-2 (テキスト) – text cao hơn */
     15fr; /* spacer-bottom: lề dưới, nhỏ hơn trước nhiều */
@@ -317,15 +317,15 @@ body.theme-night.pdf-mode #a4-inner.layout-2blocks {
 
 /* 中のテキストは左寄せ、等幅フォントで帳票っぽく */
 .info-table {
-  padding: 8px;
-  font-size: 10pt;
-  line-height: 1.4;
+  padding: 4px 8px;        /* đệm mỏng hơn chút cho gọn */
+  font-size: 8.5pt;        /* hoặc 9pt, tuỳ mắt bạn – nhỏ hơn hiện tại */
+  line-height: 1.3;
   white-space: normal;
   text-align: left;
   max-height: 100%;
   overflow-y: auto;
   width: 100%;
-  font-family: "MS Gothic", "Yu Gothic", "Courier New", ui-monospace, monospace;
+  font-family: "Times New Roman", Times, serif !important;
 }
 
 /* ================== テキスト入力モーダル ================== */

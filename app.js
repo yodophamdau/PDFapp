@@ -543,34 +543,78 @@ function clearAllData() {
 }
 
 // ================== PDF保存 ==================
-
 // ================== PDF保存 ==================
 
 exportButton.addEventListener("click", () => {
   const ok = confirm("PDFを保存しますか？");
   if (!ok) return;
 
-  document.body.classList.add("pdf-mode");   // ⭐ BẬT CHẾ ĐỘ PDF
+  document.body.classList.add("pdf-mode"); // bật chế độ PDF (ẩn toolbar, bottom bar...)
 
   const element = a4Page;
   const fileName = fileNameInput.value || "document";
 
-  const opt = {
-    margin: 0,
-    filename: fileName + ".pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  };
+  // Đợi 1 chút cho layout trong pdf-mode ổn định
+  setTimeout(() => {
+    // Lấy global từ html2pdf.bundle.min.js
+    const h2c = window.html2canvas;
+    const JsPDF = window.jsPDF;
 
-  html2pdf().set(opt).from(element).save().then(() => {
-    setTimeout(() => {
-      document.body.classList.remove("pdf-mode");  // ⭐ TẮT CHẾ ĐỘ PDF
-    }, 300);
-  });
+    if (!h2c || !JsPDF) {
+      alert("PDFライブラリの読み込みに失敗しました。");
+      document.body.classList.remove("pdf-mode");
+      return;
+    }
+
+    h2c(element, {
+      scale: 3,
+      useCORS: true,
+    })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+
+        // Tạo PDF A4 1 trang
+        const pdf = new JsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Giữ tỉ lệ hình, fit vào trang A4 và căn giữa
+        const imgWidthPx = canvas.width;
+        const imgHeightPx = canvas.height;
+        const imgAspect = imgWidthPx / imgHeightPx;
+        const pageAspect = pageWidth / pageHeight;
+
+        let renderWidth, renderHeight;
+        if (imgAspect > pageAspect) {
+          // ảnh “ngang” hơn → fit theo chiều ngang trang
+          renderWidth = pageWidth;
+          renderHeight = renderWidth / imgAspect;
+        } else {
+          // ảnh “dọc” hơn → fit theo chiều dọc trang
+          renderHeight = pageHeight;
+          renderWidth = renderHeight * imgAspect;
+        }
+
+        const x = (pageWidth - renderWidth) / 2;
+        const y = (pageHeight - renderHeight) / 2;
+
+        pdf.addImage(imgData, "JPEG", x, y, renderWidth, renderHeight);
+        pdf.save(fileName + ".pdf");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("PDF作成中にエラーが発生しました。");
+      })
+      .finally(() => {
+        document.body.classList.remove("pdf-mode");
+      });
+  }, 50);
 });
-
-
 
 
 // ================== Top bar ボタン ==================

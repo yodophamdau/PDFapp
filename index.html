@@ -305,9 +305,17 @@
     style="display:none"
   />
 
+  <!-- html2canvas: chụp A4 thành ảnh -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- html2pdf ライブラリ -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- jsPDF UMD -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // Alias để app.js dùng window.jsPDF bình thường
+    window.jsPDF = window.jspdf.jsPDF;
+  </script>
+
+  <!-- App chính -->
   <script src="app.js"></script>
 </body>
 </html>
