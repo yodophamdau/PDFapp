@@ -227,11 +227,16 @@ function createBlock(index, type, placeholder) {
 
 // ================== 画像処理 ==================
 
-// 画像ブロッククリック → モーダルでPhotos / Cameraを選択
+// 画像ブロッククリック → iPhone標準のファイル選択ポップアップを直接開く
 function handleImageBlockClick(block) {
   currentImageBlock = block;
-  if (!imageSourceModal) return;
-  imageSourceModal.classList.remove("hidden");
+
+  // dùng input "gallery" vì nó là type="file" accept="image/*"
+  // → iPhone sẽ hiện sheet mặc định: Photo Library / Take Photo / Choose File
+  if (!imageInputGallery) return;
+
+  imageInputGallery.value = "";   // reset để lần sau change vẫn chạy
+  imageInputGallery.click();      // gọi trực tiếp popup mặc định của iOS
 }
 
 // Photos（フォト）から選択された画像
@@ -641,4 +646,5 @@ window.addEventListener("DOMContentLoaded", () => {
     fileNameInput.value = "";
   }
 });
+
 
