@@ -319,27 +319,13 @@ window.addEventListener("resize", () => {
 
 
 // 選択されたファイルを現在の画像ブロックに反映
-async function applyFileToCurrentImageBlock(file) {
+function applyFileToCurrentImageBlock(file) {
   if (!file || !currentImageBlock) return;
+
+  // Chỉ mở cropper, không set ảnh / không save ở đây
   openCropper(file, currentImageBlock);
-
-  const blockId = currentImageBlock.dataset.blockId;
-  const key = `${currentTemplate}_image_${blockId}`;
-
-  // 1. Hiển thị ảnh ngay (RAM)
-  const img = document.createElement("img");
-  img.src = URL.createObjectURL(file);
-
-  currentImageBlock.innerHTML = "";
-  currentImageBlock.classList.remove("placeholder");
-  currentImageBlock.appendChild(img);
-
-  // 2. Lưu Blob vào IndexedDB
-  await saveImageToDB(key, file);
-
-  // 3. Chỉ lưu metadata (KHÔNG lưu base64)
-  saveAppState();
 }
+
 
 // Photos（フォトライブラリ）を選択
 if (imageSourceGalleryBtn) {
