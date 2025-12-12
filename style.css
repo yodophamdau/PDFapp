@@ -149,8 +149,12 @@ select {
 
 /* 紙の中のレイアウト有効領域（左右15%、中央70%） */
 #a4-inner {
-  width: 70%; /* 左右15%ずつ余白 */
+  width: 70%;
   height: 100%;
+
+  /* ✅ Thu nhỏ để thẻ ~ +12% so với thẻ gốc khi export ra A4 */
+  transform: scale(0.65);
+  transform-origin: top center;
 }
 
 /* ================== ブロック共通 ================== */
@@ -1669,3 +1673,4 @@ body.pdf-mode #a4-wrapper {
   width: 22px !important;
   height: 22px !important;
 }
+
