@@ -243,10 +243,16 @@ function drawCrop() {
   ctx.drawImage(cropImg, x, y, drawW, drawH);
 }
 if (cropZoom) {
-  cropZoom.addEventListener("change", () => {
+  const onZoom = () => {
     cropScale = parseFloat(cropZoom.value);
     drawCrop();
-  });
+  };
+
+  // ✅ realtime khi kéo (quan trọng)
+  cropZoom.addEventListener("input", onZoom, { passive: true });
+
+  // ✅ fallback: vài máy chỉ bắn change khi thả tay
+  cropZoom.addEventListener("change", onZoom, { passive: true });
 }
 
 // ✅ FIX DỨT ĐIỂM: khi thao tác slider thì khóa canvas để canvas không cướp pointer
@@ -273,15 +279,6 @@ if (cropZoom && cropCanvas) {
   });
 }
 
-
-if (cropZoom) {
-  // ✅ Chỉ chặn nổi bọt lên canvas/modal, KHÔNG chặn default của slider
-  ["pointerdown", "pointermove", "touchstart", "touchmove"].forEach((ev) => {
-    cropZoom.addEventListener(ev, (e) => {
-      e.stopPropagation();
-    }, { passive: true });
-  });
-}
 if (cropZoom) {
   cropZoom.addEventListener("pointerdown", () => { isDragging = false; }, { passive: true });
   cropZoom.addEventListener("touchstart",  () => { isDragging = false; }, { passive: true });
