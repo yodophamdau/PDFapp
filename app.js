@@ -542,7 +542,28 @@ function clearAllData() {
   saveAppState();
 }
 
-// ================== PDF保存 ==================
+// ================== Shortcuts Save Helper ==================
+async function sendPdfToShortcuts(pdfBlob, fileName) {
+  // 1) Blob -> Base64
+  const buffer = await pdfBlob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const b64 = btoa(binary);
+
+  // 2) payload: FileName||Base64
+  const payload = `${fileName}.pdf||${b64}`;
+
+  // 3) gọi shortcut (đổi "SavePDF" đúng tên shortcut của bạn)
+  const shortcutName = "SavePDF";
+  const url =
+    `shortcuts://run-shortcut?name=${encodeURIComponent(shortcutName)}` +
+    `&input=${encodeURIComponent(payload)}`;
+
+  window.location.href = url;
+}
+
 // ================== PDF保存 ==================
 
 exportButton.addEventListener("click", () => {
@@ -604,7 +625,16 @@ exportButton.addEventListener("click", () => {
         const y = (pageHeight - renderHeight) / 2;
 
         pdf.addImage(imgData, "JPEG", x, y, renderWidth, renderHeight);
-        pdf.save(fileName + ".pdf");
+
+        // ✅ iPhone: tạo blob rồi gửi sang Shortcuts để Save File
+        const pdfBlob = pdf.output("blob");
+
+        // bỏ pdf-mode trước khi nhảy sang Shortcuts (để khi quay lại app không bị “ẩn UI”)
+        document.body.classList.remove("pdf-mode");
+
+        // gọi shortcuts
+        sendPdfToShortcuts(pdfBlob, fileName);
+        return; // kết thúc luôn
       })
       .catch((err) => {
         console.error(err);
