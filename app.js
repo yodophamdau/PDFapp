@@ -154,6 +154,7 @@ function openCropper(file, block) {
     }
 
     // ✅ Hiện modal trước để canvas có kích thước thật
+    document.body.classList.add("crop-open");
     cropModal.classList.remove("hidden");
 
     // ✅ Đợi DOM layout xong rồi mới set size canvas + draw
@@ -168,6 +169,10 @@ function openCropper(file, block) {
 function closeCropper() {
   if (!cropModal) return;
   cropModal.classList.add("hidden");
+
+  // ✅ Re-enable toolbar after closing crop modal
+  document.body.classList.remove("crop-open");
+
   cropImg = null;
   cropBlock = null;
   isDragging = false;
@@ -238,10 +243,48 @@ function drawCrop() {
   ctx.drawImage(cropImg, x, y, drawW, drawH);
 }
 if (cropZoom) {
-  cropZoom.addEventListener("input", () => {
+  cropZoom.addEventListener("change", () => {
     cropScale = parseFloat(cropZoom.value);
     drawCrop();
   });
+}
+
+// ✅ FIX DỨT ĐIỂM: khi thao tác slider thì khóa canvas để canvas không cướp pointer
+if (cropZoom && cropCanvas) {
+  const lockCanvas = (e) => {
+    // chặn nổi bọt để không kích hoạt listener ở layer khác
+    e.stopPropagation();
+    // khóa canvas nhận pointer (slider luôn kéo được)
+    cropCanvas.style.pointerEvents = "none";
+    isDragging = false;
+  };
+
+  const unlockCanvas = () => {
+    cropCanvas.style.pointerEvents = "auto";
+  };
+
+  // Dùng capture:true để chặn từ sớm
+  ["pointerdown", "mousedown", "touchstart"].forEach((ev) => {
+    cropZoom.addEventListener(ev, lockCanvas, { capture: true, passive: true });
+  });
+
+  ["pointerup", "mouseup", "touchend", "touchcancel", "pointercancel"].forEach((ev) => {
+    cropZoom.addEventListener(ev, unlockCanvas, { capture: true, passive: true });
+  });
+}
+
+
+if (cropZoom) {
+  // ✅ Chỉ chặn nổi bọt lên canvas/modal, KHÔNG chặn default của slider
+  ["pointerdown", "pointermove", "touchstart", "touchmove"].forEach((ev) => {
+    cropZoom.addEventListener(ev, (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+  });
+}
+if (cropZoom) {
+  cropZoom.addEventListener("pointerdown", () => { isDragging = false; }, { passive: true });
+  cropZoom.addEventListener("touchstart",  () => { isDragging = false; }, { passive: true });
 }
 
 // kéo ảnh (pan) bằng Pointer Events
