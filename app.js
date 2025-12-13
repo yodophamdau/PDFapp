@@ -523,6 +523,43 @@ function buildLayoutForCurrentTemplate() {
   updateLayoutToggleLabel();
 }
 
+function playLayoutSwitchAnim() {
+  if (!a4Inner) return;
+
+  // remove -> reflow -> add để animation chạy lại mỗi lần bấm
+  a4Inner.classList.remove("layout-switch-anim");
+  void a4Inner.offsetWidth; // force reflow
+  a4Inner.classList.add("layout-switch-anim");
+
+  // dọn class sau khi chạy xong
+  setTimeout(() => {
+    a4Inner.classList.remove("layout-switch-anim");
+  }, 450);
+}
+
+function playLayoutFlash() {
+  if (!a4Inner) return;
+
+  // Vì layout vừa rebuild → phải query lại block
+  const blocks = a4Inner.querySelectorAll(".block");
+
+  blocks.forEach((b, i) => {
+    b.classList.remove("layout-flash");
+    void b.offsetWidth; // force reflow
+
+    // ✨ stagger nhẹ cho pro hơn
+    setTimeout(() => {
+      b.classList.add("layout-flash");
+    }, i * 60);
+  });
+
+  // Dọn class sau khi animation xong
+  setTimeout(() => {
+    blocks.forEach((b) => b.classList.remove("layout-flash"));
+  }, 450);
+}
+
+
 // レイアウト切替ボタンのラベル更新
 function updateLayoutToggleLabel() {
   if (!layoutToggleButton) return;
@@ -1075,6 +1112,8 @@ layoutToggleButton.addEventListener("click", () => {
   fileNameInput.value = "";
 
   buildLayoutForCurrentTemplate();
+  playLayoutSwitchAnim();
+  playLayoutFlash();
   saveAppState();
 });
 

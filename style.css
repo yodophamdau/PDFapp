@@ -1576,9 +1576,9 @@ body.theme-night.pdf-mode #a4-page {
     height: 100svh;
     min-height: 100svh;
 
-    padding: env(safe-area-inset-top, 4px)
-             8px
-             max(env(safe-area-inset-bottom), 6px);
+    padding: max(env(safe-area-inset-top, 0px), 6px)
+            8px
+            max(env(safe-area-inset-bottom, 0px), 6px);
 
     display: flex;
     flex-direction: column;
@@ -1864,6 +1864,100 @@ body.crop-open #toolbar{
       #ffffff 0%,
       #eef7f1 100%
     );
+  }
+}
+/* ===== Layout switch feedback ===== */
+#a4-inner.layout-switch-anim .block {
+  animation: layoutPop 260ms ease both;
+}
+
+#a4-inner.layout-switch-anim .block-1 { animation-delay: 250ms; }
+#a4-inner.layout-switch-anim .block-2 { animation-delay: 390ms; }
+#a4-inner.layout-switch-anim .block-3 { animation-delay: 530ms; }
+
+@keyframes layoutPop {
+  from {
+    transform: translateY(10px) scale(0.985);
+    opacity: 0.55;
+    filter: blur(0.2px);
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Flash từng block (đẹp hơn, rõ là layout đổi) */
+.block.layout-flash {
+  animation: blockFlash 300ms ease-out;
+}
+
+@keyframes blockFlash {
+  0% {
+    border-color: rgba(34,197,94,0.0);
+    box-shadow: none;
+  }
+  40% {
+    border-color: rgba(34,197,94,0.9);
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.35);
+  }
+  100% {
+    border-color: inherit;
+    box-shadow: none;
+  }
+}
+/* ===== Layout change flash (blocks) ===== */
+.block.layout-flash{
+  animation: blockFlash 450ms ease-out;
+  outline: 0 solid rgba(0, 200, 120, 0);
+  outline-offset: 2px;
+}
+
+@keyframes blockFlash{
+  0%{
+    outline: 0 solid rgba(0, 200, 120, 0);
+    box-shadow: none;
+  }
+  35%{
+    outline: 3px solid rgba(0, 200, 120, 0.95);
+    box-shadow: 0 0 0 2px rgba(0, 200, 120, 0.35);
+  }
+  100%{
+    outline: 0 solid rgba(0, 200, 120, 0);
+    box-shadow: none;
+  }
+}
+/* ===== Layout flash (VISIBLE, không bị đè) ===== */
+#a4-inner .block.layout-flash{
+  animation: layoutFlashPulse 1950ms ease-out both !important;
+}
+
+@keyframes layoutFlashPulse{
+  0%{
+    outline: 0 solid rgba(34,197,94,0);
+    outline-offset: 2px;
+    box-shadow: none;
+    filter: none;
+  }
+  35%{
+    outline: 3px solid rgba(34,197,94,0.95);
+    box-shadow: 0 0 0 4px rgba(34,197,94,0.28);
+    filter: brightness(1.03);
+  }
+  100%{
+    outline: 0 solid rgba(34,197,94,0);
+    box-shadow: none;
+    filter: none;
+  }
+}
+
+/* Nếu máy bật “Reduce motion” thì vẫn thấy đổi (không phụ thuộc animation) */
+@media (prefers-reduced-motion: reduce){
+  #a4-inner .block.layout-flash{
+    outline: 3px solid rgba(34,197,94,0.95) !important;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.28) !important;
+    filter: brightness(1.02) !important;
   }
 }
 
