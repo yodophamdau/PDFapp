@@ -99,8 +99,23 @@ const cropModal  = document.getElementById("crop-modal");
 const cropCanvas = document.getElementById("crop-canvas");
 const cropStage = cropCanvas?.parentElement; // .crop-stage
 const cropZoom   = document.getElementById("crop-zoom");
+const cropPanY   = document.getElementById("crop-pan-y");
 const cropCancel = document.getElementById("crop-cancel");
 const cropApply  = document.getElementById("crop-apply");
+function updateRangeFill(el, invert = false) {
+  if (!el) return;
+  const min = parseFloat(el.min || "0");
+  const max = parseFloat(el.max || "1");
+  const val = parseFloat(el.value || "0");
+
+  const t = (val - min) / (max - min || 1);
+  let pct = Math.max(0, Math.min(1, t)) * 100;
+
+  // nếu hướng fill bị ngược, bật invert
+  if (invert) pct = 100 - pct;
+
+  el.style.setProperty("--fill", `${pct}%`);
+}
 
 let cropImg = null;           // HTMLImageElement
 let cropBlock = null;         // block đang crop
@@ -110,9 +125,17 @@ let cropMinScale = 1;
 let cropMaxScale = 3;
 let cropOffsetX = 0;          // pan
 let cropOffsetY = 0;
+let cropMaxPanX = 0;
+let cropMaxPanY = 0;
 
 let isDragging = false;
 let lastX = 0, lastY = 0;
+
+if (cropPanY) {
+  cropPanY.value = "0";
+  cropPanY.disabled = false;
+  cropPanY.style.opacity = "1";
+}
 
 function openCropper(file, block) {
   if (!file || !block || !cropModal) return;
@@ -142,19 +165,27 @@ function openCropper(file, block) {
     const { cw, ch } = getCropCanvasSize();
     const sx = cw / img.naturalWidth;
     const sy = ch / img.naturalHeight;
-    cropMinScale = Math.max(sx, sy);
-    cropMaxScale = cropMinScale * 3; // cho zoom tối đa ~3 lần
+
+    const cover = Math.max(sx, sy);
+    const contain = Math.min(sx, sy);
+
+    // ✅ Baseline = cover => mặc định full, không có khoảng trắng
+    cropMinScale = cover;
+
+    // ✅ cho phép kéo xuống dưới 1.0 để “contain” khi cần
+    const minFactor = contain / cover; // <= 1
+
+    // ✅ scale ban đầu = cover
     cropScale = cropMinScale;
 
+    // ✅ slider là factor tương đối so với cover
     if (cropZoom) {
-      // ✅ Slider luôn là "zoom factor" 1x ~ 3x
-      cropZoom.min = "1";
+      cropZoom.min = String(minFactor);
       cropZoom.max = "3";
       cropZoom.step = "0.01";
-      cropZoom.value = "1";
 
-      // Scale thật dùng để vẽ = minScale * factor
-      cropScale = cropMinScale * parseFloat(cropZoom.value);
+      // ✅ default = 1.0 (cover)
+      cropZoom.value = "1";
     } else {
       console.warn("Missing #crop-zoom in HTML");
     }
@@ -163,7 +194,12 @@ function openCropper(file, block) {
     document.body.classList.add("crop-open");
     cropModal.classList.remove("hidden");
     cropCanvas?.parentElement?.classList.remove("dragging");
-
+    // ✅ set chiều dài slider dọc đúng bằng chiều cao vùng crop
+    requestAnimationFrame(() => {
+      if (!cropPanY || !cropCanvas) return;
+      const h = cropCanvas.getBoundingClientRect().height;
+      cropPanY.style.width = `${Math.max(140, Math.floor(h))}px`;
+    });
     // ✅ Đợi DOM layout xong rồi mới set size canvas + draw
     requestAnimationFrame(() => {
       resizeCropCanvas();
@@ -215,27 +251,65 @@ function clampPan() {
   cropOffsetY = Math.min(maxY, Math.max(-maxY, cropOffsetY));
 }
 
+function clampPan() {
+  if (!cropImg || !cropCanvas) return;
+
+  const cw = cropCanvas.width;
+  const ch = cropCanvas.height;
+
+  const sx = cw / cropImg.naturalWidth;
+  const sy = ch / cropImg.naturalHeight;
+  const base = Math.max(sx, sy); // ✅ contain
+
+  const rel = cropScale / cropMinScale;
+  const finalScale = base * rel;
+
+  const drawW = cropImg.naturalWidth * finalScale;
+  const drawH = cropImg.naturalHeight * finalScale;
+
+  cropMaxPanX = Math.max(0, (drawW - cw) / 2);
+  cropMaxPanY = Math.max(0, (drawH - ch) / 2);
+
+  cropOffsetX = Math.min(cropMaxPanX, Math.max(-cropMaxPanX, cropOffsetX));
+  cropOffsetY = Math.min(cropMaxPanY, Math.max(-cropMaxPanY, cropOffsetY));
+
+  // ✅ Sync slider dọc (min/max/value) + disable khi không thể kéo
+  if (cropPanY) {
+    cropPanY.min = String(-cropMaxPanY);
+    cropPanY.max = String(cropMaxPanY);
+    cropPanY.step = "1";
+    cropPanY.value = String(cropOffsetY);
+    updateRangeFill(cropPanY);
+
+    const disabled = cropMaxPanY <= 0;
+    cropPanY.disabled = disabled;
+    cropPanY.style.opacity = disabled ? "0.35" : "1";
+  }
+}
+
+
 function drawCrop() {
   if (!cropImg) return;
 
   const ctx = cropCanvas.getContext("2d");
   if (!ctx) return;
 
-  // clear
-  ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
-
   // scale logic: map to canvas pixel space
   const cw = cropCanvas.width;
   const ch = cropCanvas.height;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, cw, ch);
+  ctx.restore();
 
-  // base cover scale in canvas-px terms
   const sx = cw / cropImg.naturalWidth;
   const sy = ch / cropImg.naturalHeight;
-  const cover = Math.max(sx, sy);
+  const base = Math.max(sx, sy); // ✅ contain
 
-  // cropScale là absolute scale (đã tính minScale), nhưng ta quy về cover baseline
+  // cropScale là absolute scale tính từ contain baseline
   const rel = cropScale / cropMinScale;
-  const finalScale = cover * rel;
+  const finalScale = base * rel;
 
   const drawW = cropImg.naturalWidth * finalScale;
   const drawH = cropImg.naturalHeight * finalScale;
@@ -254,20 +328,22 @@ if (cropZoom) {
     const factor = parseFloat(cropZoom.value) || 1;
     cropScale = cropMinScale * factor;
 
-    // 👇 hiện lưới khi zoom
-    cropStage?.classList.add("dragging");
+    // ✅ cập nhật fill cho slider ngang
+    updateRangeFill(cropZoom);
 
+    cropStage?.classList.add("dragging");
     drawCrop();
 
-    // 👇 ẩn lưới sau 150ms (khi ngừng kéo)
     clearTimeout(applyZoom._t);
     applyZoom._t = setTimeout(() => {
       cropStage?.classList.remove("dragging");
     }, 150);
   };
+
   cropZoom.addEventListener("input", applyZoom, { passive: true });
   cropZoom.addEventListener("change", applyZoom, { passive: true });
 }
+
 
 // ✅ FIX: Chrome device-mode đôi khi không kéo được range native => tự kéo bằng chuột
 if (cropZoom) {
@@ -283,6 +359,7 @@ if (cropZoom) {
 
     const v = min + (max - min) * t;
     cropZoom.value = String(v);
+    updateRangeFill(cropZoom);
 
     // gọi y như khi kéo slider
     const factor = parseFloat(cropZoom.value) || 1;
@@ -303,6 +380,19 @@ if (cropZoom) {
   window.addEventListener("mouseup", () => {
     draggingZoom = false;
   });
+}
+
+if (cropPanY) {
+  const applyPanY = () => {
+    cropOffsetY = parseFloat(cropPanY.value) || 0;
+
+    // ✅ cập nhật fill cho slider dọc
+    updateRangeFill(cropPanY, true);
+
+    drawCrop(); // drawCrop sẽ clamp + sync lại luôn
+  };
+  cropPanY.addEventListener("input", applyPanY, { passive: true });
+  cropPanY.addEventListener("change", applyPanY, { passive: true });
 }
 
 

@@ -318,16 +318,32 @@
   <!-- ===== Crop Modal ===== -->
   <div id="crop-modal" class="crop-modal hidden">
     <div class="crop-panel">
-      <div class="crop-title">画像をトリミング</div>
+      <div class="crop-title">画像トリミング</div>
 
-      <div class="crop-stage">
-        <canvas id="crop-canvas"></canvas>
-        <!-- khung crop overlay -->
-        <div class="crop-frame"></div>
+      <div class="crop-stage-wrap">
+        <div class="crop-stage">
+          <canvas id="crop-canvas"></canvas>
+          <div class="crop-frame"></div>
+        </div>
+
+        <!-- Slider dọc: kéo ảnh lên/xuống -->
+        <div class="crop-pan-y-wrap">
+          <input
+            id="crop-pan-y"
+            class="crop-pan-y"
+            type="range"
+            min="-100"
+            max="100"
+            step="1"
+            value="0"
+            aria-label="縦位置調整"
+          />
+        </div>
       </div>
 
+      <!-- Slider ngang: zoom -->
       <div class="crop-controls">
-        <input id="crop-zoom" type="range" min="1" max="3" step="0.01" value="1">
+        <input id="crop-zoom" type="range" min="1" max="3" step="0.01" value="1" />
       </div>
 
       <div class="crop-actions">
@@ -335,6 +351,8 @@
       </div>
     </div>
   </div>
+
+
   <!-- App chính -->
   <script src="app.js"></script>
 </body>
